@@ -1,6 +1,6 @@
 package collections.lesson.students;
 
-public class StudentInformation {
+public class StudentInformation implements Comparable<StudentInformation> {
     private String id;
     private String name;
 
@@ -20,6 +20,11 @@ public class StudentInformation {
     }
 
     @Override
+    public int compareTo(StudentInformation other) {
+        return this.id.compareTo(other.id);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
@@ -30,5 +35,12 @@ public class StudentInformation {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "name='" + name +
+                '}';
     }
 }
