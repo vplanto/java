@@ -11,6 +11,7 @@ public class ArrayListTest {
 
     @Test
     public void testArrayListImplementation() {
+        // Test addStudent
         List<Student> students = new ArrayList<>();
         StudentManager studentManager = new StudentManager(students);
 
@@ -25,6 +26,6 @@ public class ArrayListTest {
         // Test removeStudent
         studentManager.removeStudent(new Student("John", 20));
         retrievedStudents = studentManager.getAllStudents();
-        assertEquals(2, retrievedStudents.size());
+        assertEquals(1, retrievedStudents.size());
     }
 }

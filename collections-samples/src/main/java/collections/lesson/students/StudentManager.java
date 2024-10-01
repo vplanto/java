@@ -3,7 +3,7 @@ package collections.lesson.students;
 import java.util.List;
 
 public class StudentManager {
-    private List<Student> students;
+    final private List<Student> students;
 
     public StudentManager(List<Student> students) {
         this.students = students;

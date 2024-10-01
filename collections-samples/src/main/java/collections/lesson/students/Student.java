@@ -1,8 +1,8 @@
 package collections.lesson.students;
 
 public class Student {
-    private String name;
-    private int age;
+    final private String name;
+    final private int age;
 
     public Student(String name, int age) {
         this.name = name;
@@ -17,6 +17,15 @@ public class Student {
 
     public int getAge() {
         return age;
+    }
+
+    @Override
+    public boolean equals(Object student){
+        if (student == null){
+            return false;
+        }
+
+        return this.age == ((Student)student).age && this.name.equals(((Student)student).name);
     }
 
     @Override
