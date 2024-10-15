@@ -1,0 +1,6 @@
+# Ignore .idea directory
+.idea/
+
+# Ignore target directories in any subfolders
+**/target/
+
