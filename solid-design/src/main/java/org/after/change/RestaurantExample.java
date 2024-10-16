@@ -5,6 +5,7 @@ import org.after.change.billing.RegularTaxBill;
 import org.after.change.customer.Customer;
 import org.after.change.order.RegularOrder;
 import org.after.change.product.RegularItem;
+import org.after.change.report.JSONReport;
 
 public class RestaurantExample {
     private final Customer customer;
@@ -29,6 +30,7 @@ public class RestaurantExample {
         System.out.println("Total = " + total);
         total = new RegularTaxBill(this.gst).calculateTotal(this.order);
         System.out.println("Total with taxes = " + total);
+        new JSONReport().generate(customer);
     }
 
     public static void main(String[] args) {
