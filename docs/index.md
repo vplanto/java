@@ -11,4 +11,4 @@
 * [Лекція 4: Обробка винятків в Java](04_java_exceptions.md)
 
 ## Практікум
-* [Практикум 1: Робочий процес з Git та GitHub для завдань з Java](p01_git_github.md)
+* [Практикум 0: Робочий процес з Git та GitHub для завдань з Java](p00_git_github.md)
