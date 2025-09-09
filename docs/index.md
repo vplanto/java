@@ -9,3 +9,6 @@
 * [Лекція 2: Java Collections Framework — Основи](02_collections_intro.md)
 * [Лекція 3: Як обрати правильну колекцію](03_choosing_right_collection.md)
 * [Лекція 4: Обробка винятків в Java](04_java_exceptions.md)
+
+## Практікум
+* [Практикум 1: Робочий процес з Git та GitHub для завдань з Java](p01_git_github.md)
