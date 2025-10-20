@@ -79,8 +79,8 @@
   * `thread.start()`: Повідомляє JVM, що потрібно виділити новий потік і в ньому виконати метод `run()`.
   * `thread.run()`: Просто виконає код з методу `run()` у поточному, головному потоці. Ніякої паралельності не буде\!
 
-<details\>
-<summary\><b\>Приклад створення потоків¹</b\></summary\>
+<details>
+<summary><b>Приклад створення потоків¹</b></summary>
 
 ```java
 package org.example;
@@ -108,10 +108,10 @@ public class Main {
 }
 ```
 
-</details\>
+</details>
 
-<details\>
-<summary\><b\>Лямбда-синтаксис для `Runnable`²</b\></summary\>
+<details>
+<summary><b>Лямбда-синтаксис для `Runnable`²</b></summary>
 
 ```java
 package org.example;
@@ -126,7 +126,7 @@ public class MyLambda {
 }
 ```
 
-</details\>
+</details>
 
 ¹ `Main.java`
 ² `MyLambda.java`
@@ -181,8 +181,8 @@ public class MyLambda {
 
 Давайте подивимось на приклад лічильника, який інкрементують два потоки.
 
-<details\>
-<summary\><b\>Приклад з лічильником³</b\></summary\>
+<details>
+<summary><b>Приклад з лічильником³</b></summary>
 
 ```java
 package org.example;
@@ -232,7 +232,7 @@ public class MutexSample {
 }
 ```
 
-</details\>
+</details>
 
 **Що тут змінилося і чому?**
 Початкова проблема така: операція `count++` не є **атомарною**. Вона складається з трьох кроків: 1) прочитати значення, 2) збільшити його, 3) записати назад. Між цими кроками інший потік може втрутитися, що призведе до втрати даних.
@@ -268,8 +268,8 @@ public class MutexSample {
 
 У нашому прикладі ця проблема вирішується за допомогою семафора, який обмежує кількість філософів за столом.
 
-<details\>
-<summary\><b\>Приклад з філософами⁴</b\></summary\>
+<details>
+<summary><b>Приклад з філософами⁴</b></summary>
 
 ```java
 // Philosopher.java
@@ -306,7 +306,7 @@ public class PhilosopherDining {
 }
 ```
 
-</details\>
+</details>
 
 ⁴ `Philosopher.java`, `PhilosopherDining.java`
 
@@ -320,8 +320,8 @@ public class PhilosopherDining {
   * `object.notify()`: "Будить" один випадковий потік, що чекає на моніторі цього об'єкта.
   * `object.notifyAll()`: "Будить" усі потоки, що чекають.
 
-<details\>
-<summary\><b\>Приклад `wait` та `notify`⁵</b\></summary\>
+<details>
+<summary><b>Приклад `wait` та `notify`⁵</b></summary>
 
 ```java
 package org.example;
@@ -355,7 +355,7 @@ public class WaitNotifyExample {
 }
 ```
 
-</details\>
+</details>
 
 ⁵ `WaitNotifyExample.java`
 
