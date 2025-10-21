@@ -79,10 +79,9 @@
   * `thread.start()`: Повідомляє JVM, що потрібно виділити новий потік і в ньому виконати метод `run()`.
   * `thread.run()`: Просто виконає код з методу `run()` у поточному, головному потоці. Ніякої паралельності не буде\!
 
-<details>
-<summary><b>Приклад створення потоків¹</b></summary>
+**Приклад створення потоків¹**
 
-<pre><code class="language-java">
+```java
 package org.example;
 
 // Класичний підхід через наслідування
@@ -106,12 +105,9 @@ public class Main {
         new HelloThread().start();
     }
 }
-</code></pre>
+```
 
-</details>
-
-<details>
-<summary><b>Лямбда-синтаксис для `Runnable`²</b></summary>
+**Лямбда-синтаксис для `Runnable`²**
 
 ```java
 package org.example;
@@ -125,8 +121,6 @@ public class MyLambda {
     }
 }
 ```
-
-</details>
 
 ¹ `Main.java`
 ² `MyLambda.java`
@@ -181,8 +175,7 @@ public class MyLambda {
 
 Давайте подивимось на приклад лічильника, який інкрементують два потоки.
 
-<details>
-<summary><b>Приклад з лічильником³</b></summary>
+**Приклад з лічильником³**
 
 ```java
 package org.example;
@@ -232,8 +225,6 @@ public class MutexSample {
 }
 ```
 
-</details>
-
 **Що тут змінилося і чому?**
 Початкова проблема така: операція `count++` не є **атомарною**. Вона складається з трьох кроків: 1) прочитати значення, 2) збільшити його, 3) записати назад. Між цими кроками інший потік може втрутитися, що призведе до втрати даних.
 
@@ -267,8 +258,7 @@ public class MutexSample {
 
 У нашому прикладі ця проблема вирішується за допомогою семафора, який обмежує кількість філософів за столом.
 
-<details>
-<summary><b>Приклад з філософами⁴</b></summary>
+**Приклад з філософами⁴**
 
 ```java
 // Philosopher.java
@@ -305,8 +295,6 @@ public class PhilosopherDining {
 }
 ```
 
-</details>
-
 ⁴ `Philosopher.java`, `PhilosopherDining.java`
 
 -----
@@ -319,8 +307,7 @@ public class PhilosopherDining {
   * `object.notify()`: "Будить" один випадковий потік, що чекає на моніторі цього об'єкта.
   * `object.notifyAll()`: "Будить" усі потоки, що чекають.
 
-<details>
-<summary><b>Приклад `wait` та `notify`⁵</b></summary>
+**Приклад `wait` та `notify`⁵**
 
 ```java
 package org.example;
@@ -353,8 +340,6 @@ public class WaitNotifyExample {
     }
 }
 ```
-
-</details>
 
 ⁵ `WaitNotifyExample.java`
 
