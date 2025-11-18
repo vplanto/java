@@ -1,6 +1,23 @@
-# Ignore .idea directory
+# --- Eclipse IDE Files ---
+.classpath
+.project
+.settings/
+.metadata/
+
+# --- IntelliJ IDEA / Build Output ---
+out/
+bin/
+*.iml
 .idea/
 
-# Ignore target directories in any subfolders
-**/target/
+# --- Maven/Gradle (Common Build Tools) ---
+target/
+build/
+.gradle/
 
+# --- Compiled Java Classes (Safety Net) ---
+*.class
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
