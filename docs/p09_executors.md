@@ -191,7 +191,7 @@ public class ServerSimulator_Good {
 
 Давайте симулюємо наш логістичний центр, який паралельно опитує 3 склади.
 
-<details markdown="1D">
+<details markdown="1">
 <summary>Натисніть, щоб побачити повний код прикладу</summary>
 
 ```java
@@ -272,7 +272,6 @@ public class LogisticsCenter {
     }
 }
 ```
-
 </details>
 
 ### Погляд у майбутнє: `CompletableFuture`
