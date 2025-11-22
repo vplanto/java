@@ -296,3 +296,4 @@ public:
 class SecretAgent { // Немає public
     String codeName; // Немає private
 }
+```
