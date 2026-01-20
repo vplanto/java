@@ -1,5 +1,7 @@
 # System Design Foundations: Чому код — це лише деталь. Mindset, NFR та Артефакти (Extended)
 
+> **English version:** [English](en/_system_design_foundations.md)
+
 **Аудиторія:** Майбутні System Architects / Tech Leads
 **Ціль:** Зрозуміти різницю між написанням коду та проєктуванням систем. Навчитися бачити "невидимі" вимоги середовища виконання та оперувати компромісами (Trade-offs).
 

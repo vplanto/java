@@ -1,5 +1,7 @@
 # Case Study: Чому CAP-теорема — це (майже) міф у Хмарі
 
+> **English version:** [English](en/case_study_cap.md)
+
 **Джерело:** Marc Brooker, Principal Engineer at AWS (будує EBS, Lambda).
 **Тема:** Розподілені системи, CAP, PACELC.
 **Рівень:** Advanced / Architecture Mindset.

@@ -1,5 +1,7 @@
 # Практика: System Design Workshop. Практика "URL Shortener"
 
+> **English version:** [English](en/_system_design_workshop.md)
+
 **Аудиторія:** 2-й курс (Junior Engineers)
 **Формат:** Live Design Session
 **Мета:** Пройти шлях від абстрактної ідеї "зроби мені як bit.ly" до конкретної схеми бази даних та вибору алгоритмів, використовуючи AI як партнера.
