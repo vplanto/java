@@ -16,7 +16,7 @@
 ## 📚 Module structure
 
 ### 1. Theory and a mental model
-**[Lecture: System Design Foundations](11_system_design_foundations.md)**
+**[Lecture: System Design Foundations](_system_design_foundations.md)**
 *This is where we build the vocabulary and the architect’s way of thinking.*
 
 * **Mindset:** How a `Senior Dev` differs from an `Architect`. Why code is only 20% of the job.
