@@ -8,7 +8,7 @@
 
 ---
 
-## ⚡ 1. Rapid activation: What are we building?
+### 1. Rapid activation: What are we building?
 
 Everyone knows services like `bit.ly`. You paste a long link and get a short one.  
 It looks like a 15-minute task for a 1st-year student.
@@ -183,22 +183,22 @@ Before drawing, remember the architect’s mantras:
 
 **Vibe Coding Tip (RAG):** Use AI with **RAG (Retrieval-Augmented Generation)**. Load your project docs and corporate security standards so it generates solutions compatible with your infrastructure—not generic internet advice.
 
-### ⬆️ Northbound: Ingress
+### Northbound: Ingress
 
 * **Clients:** Browsers, mobile apps.
 * **Load Balancer (LB):** (e.g., HAProxy/Nginx). Takes the first удар. Distributes traffic across application instances.
 
-### ⏺️ Center: application layer
+### Center: application layer
 
 * **App Service (Java/Spring Boot):** The “brain” of the system. It’s stateless, so we can run 50 instances in parallel.
 * API: `shortenURL(longUrl)`, `decodeURL(shortUrl)`.
 
-### ⬇️ Southbound: data (state)
+### Southbound: data (state)
 
 * **Database (PostgreSQL):** Stores the “golden copy” of data (mapping: ID -> LongURL).
 * **Cache (Redis):** Stores “hot” links for instant access (< 10ms). **In-memory processing** is key for high performance.
 
-### ⬅️ East-West: supporting services
+### East-West: supporting services
 
 * **ID Generator (Zookeeper):** A service that hands out unique number ranges so servers don’t create duplicates.
 
@@ -331,7 +331,7 @@ If we earn $0.50 per 1000 impressions but infra costs $0.60, we’re burning inv
 
 ---
 
-## ✅ Final architect checklist
+### Final architect checklist
 
 Validate the solution against the “holy trinity” of NFRs:
 
@@ -346,7 +346,7 @@ Validate the solution against the “holy trinity” of NFRs:
 
 ---
 
-## 🛠 Homework: Vibe Coding Challenge
+### Homework: Vibe Coding Challenge
 
 **Task:** Using AI (Gemini/ChatGPT), generate an **OpenAPI (Swagger) specification** for this service.
 

@@ -7,7 +7,7 @@
 
 ---
 
-## ⚡ 1. Rapid activation (warm-up)
+### 1. Rapid activation (warm-up)
 
 **Question 1:** What is the fundamental difference between a Senior Developer’s job and a Solution Architect’s?
 
@@ -133,7 +133,7 @@ New architects often design for an ideal world. The real world is brutal.
 
 With a blank page, panic is normal. How do you turn an idea into architecture? There are two fundamental approaches.
 
-### 🛠 Top-down — domain-driven focus
+### Top-down — domain-driven focus
 
 * **Philosophy:** “From user need to hardware.”
 * **Process:**
@@ -162,7 +162,7 @@ With a blank page, panic is normal. How do you turn an idea into architecture? T
 
 In complex distributed systems, it’s easy to get lost. Architects use cardinal directions to standardize data flows and protocol choices.
 
-### ⬆️ Northbound: front door
+### Northbound: front door
 
 This is your public facade. The environment is hostile (Internet).
 
@@ -175,7 +175,7 @@ This is your public facade. The environment is hostile (Internet).
 
 * **Architectural focus:** Security, rate limiting (Token Bucket), caching strategies (ETag, Cache-Control).
 
-### ⬇️ Southbound: foundation and state
+### Southbound: foundation and state
 
 These are stateful systems. This is where “state” lives.
 
@@ -189,7 +189,7 @@ These are stateful systems. This is where “state” lives.
 * **Connection Pooling:** PgBouncer (don’t open a socket per request).
 * **Data Partitioning/Sharding:** Horizontal scaling for data.
 
-### ⬅️➡️ East-West: internal communication (data center)
+### East-West: internal communication (data center)
 
 Traffic between microservices inside a VPC/cluster.
 
@@ -287,7 +287,7 @@ An architect is the person who makes the **most expensive decisions** before the
 
 ---
 
-## ❓ Discussion question
+### Discussion question
 
 *Situation: You’re building a system for a Tier 1 telecom operator. You need to add analytics.*  
 **Question:** Which direction (N/S/E/W) does integration with external Google Analytics belong to? What about an internal Hadoop Data Warehouse?
@@ -302,7 +302,7 @@ An architect is the person who makes the **most expensive decisions** before the
 
 ---
 
-## ✅ 9. Final check questions (checklist)
+### 9. Final check questions (checklist)
 
 1. **On NFRs:** Why is “fast” a bad requirement? How should an architect specify performance requirements?
 <details>
