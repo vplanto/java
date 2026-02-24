@@ -1,6 +1,6 @@
 # Practice: System Design Workshop. “URL Shortener” Practice
 
-> **Other language:** [Українська версія](../_system_design_workshop.md)
+> **Other language:** [Українська версія](../p01_system_design_workshop.md)
 
 **Audience:** 2nd year (Junior Engineers)  
 **Format:** Live Design Session  

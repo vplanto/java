@@ -186,3 +186,8 @@ public record CurrencyResponse(
 3. **Testability** (складніше писати Unit-тести), **Maintainability** (важче читати та змінювати код), **Reusability** (код неможливо використати в іншому місці).
 
 </details>
+---
+
+**[⬅️ P03: Zero to Hero](p03_spring_zero_to_hero.md)** | **[P05: Production Ready ➡️](p05_spring_production_ready.md)**
+
+**[⬅️ Повернутися до головного меню курсу](index.md)**

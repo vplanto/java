@@ -166,3 +166,8 @@ public SystemStatus getStatus() {
 
 
 </details>
+---
+
+**[⬅️ P02: Web архітектура](p02_spring_web_arch.md)** | **[P04: DI та архітектура ➡️](p04_spring_architecture_di.md)**
+
+**[⬅️ Повернутися до головного меню курсу](index.md)**

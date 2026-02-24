@@ -144,3 +144,6 @@ if (classpath.contains("PostgreSQL-Driver") && !beans.contains("DataSource")) {
 3. **Statelessness.** У SPA сервер не зберігає стан сесії відображення (View State). Кожен запит атомарний. Це дозволяє поставити Load Balancer і додати хоч 1000 нових серверів без складної синхронізації сесій між ними.
 
 </details>
+---
+
+**[⬅️ Повернутися до головного меню курсу](index.md)** | **[P03: Zero to Hero ➡️](p03_spring_zero_to_hero.md)**

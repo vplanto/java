@@ -1,6 +1,6 @@
 # System Design Foundations: Why code is only a detail. Mindset, NFRs, and artifacts (Extended)
 
-> **Other language:** [Українська версія](../_system_design_foundations.md)
+> **Other language:** [Українська версія](../11_system_design.md)
 
 **Audience:** Future System Architects / Tech Leads  
 **Goal:** Understand the difference between writing code and designing systems. Learn to see the “invisible” runtime requirements and reason in trade-offs.

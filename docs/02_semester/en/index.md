@@ -16,7 +16,7 @@
 ## 📚 Module structure
 
 ### 1. Theory and a mental model
-**[Lecture: System Design Foundations](_system_design_foundations.md)**
+**[Lecture: System Design Foundations](11_system_design.md)**
 *This is where we build the vocabulary and the architect’s way of thinking.*
 
 * **Mindset:** How a `Senior Dev` differs from an `Architect`. Why code is only 20% of the job.
@@ -26,7 +26,7 @@
 * **Artifacts:** What does an architect leave behind? (ADR, Impact Analysis, Blueprint).
 
 ### 2. Practice and “battle-tested” engineering
-**[Practice: Workshop “URL Shortener” (Ultimate Edition)](_system_design_workshop.md)**
+**[Practice: Workshop “URL Shortener” (Ultimate Edition)](p01_system_design_workshop.md)**
 *Live Design Session: We design a bit.ly clone with real-world constraints.*
 
 * **Real Numbers:** The “elevator doors” mental model and biological limits (100ms).
