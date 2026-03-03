@@ -3,7 +3,7 @@
 **Аудиторія:** 2-й курс (Junior Strong)
 **Ціль:** Показати на реальних прикладах, що відбувається, коли NFR виявляються після старту розробки. Навчити збирати NFR до написання першого рядка коду.
 
-> **English version:** [English](en/05_nfr_late_discovery.md)
+> **English version:** [English](en/05_nfr_late_discovery.md) | **Незнайоме слово?** → [Глосарій курсу](glossary.md)
 
 ---
 

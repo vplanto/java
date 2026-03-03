@@ -3,7 +3,7 @@
 **Аудиторія:** 2-й курс (Junior Strong)
 **Ціль:** Показати, що нефункціональні вимоги визначають архітектуру задовго до написання першого рядка коду. Навчити формулювати NFR з конкретними числами, а не словами.
 
-> **English version:** [English](en/04_nfr.md)
+> **English version:** [English](en/04_nfr.md) | **Незнайоме слово?** → [Глосарій курсу](glossary.md)
 
 ---
 
@@ -379,6 +379,6 @@ SLO завжди суворіший за SLA. Якщо SLA = 99.9%, команд
 
 ---
 
-**[⬅️ Лекція 3: Definition of Requirements](03_requirements.md)** | **[Лекція 5: NFRs Deep Dive ➡️](05_nfr_deep_dive.md)**
+**[⬅️ Лекція 3: Definition of Requirements](03_requirements.md)** | **[Лекція 5: NFR Discovery ➡️](05_nfr_late_discovery.md)**
 
 **[⬅️ Повернутися до головного меню курсу](index.md)**
