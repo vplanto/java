@@ -22,6 +22,7 @@
 |---|---|---|
 | 0 | **[Intro. Engineering Mindset](00_intro.md)** | Від кодера до інженера. Код як пасив, архітектура як актив |
 | 1 | **[SDLC](01_sdlc.md)** | Етапи життя ПЗ. Роль Jira, Git, CI/CD |
+| 1a | **[Project Roles](01a_project_roles.md)** | Розширений перелік Enterprise ролей |
 | 2 | **[Delivery Methodology](02_delivery_methodology.md)** | Agile, Scrum, Kanban vs Waterfall |
 | 3 | **[Definition of Requirements](03_requirements.md)** | Функціональні вимоги. User Stories. Acceptance Criteria |
 
