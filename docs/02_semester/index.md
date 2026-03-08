@@ -70,6 +70,7 @@
 
 | Файл | Лекція | Зміст |
 |---|---|---|
+| **[Workshop: Scrum Ceremonies (Case Study)](workshop_02_agile.md)** | Л2 | Planning, Daily, Review, Retrospective на реальному проєкті |
 | **[P07: API Design на практиці](p07_api_practice.md)** | Л7 | URL-структура, HTTP-статуси, OpenAPI YAML, Breaking Changes |
 | **[P08: Testing на практиці](p08_testing_practice.md)** | Л8 | Unit (Mockito), @DataJpaTest, MockMvc, Coverage |
 | **[P09: Docker на практиці](p09_docker_practice.md)** | Л9 | Dockerfile, Docker Compose + PostgreSQL, Debugging |
