@@ -1,90 +1,124 @@
-# Воркшоп: Командне планування спринту
+# План воркшопу: Децентралізована команда (VARTA)
 
-**Зв'язок з теорією:** [Лекція 3: Requirements](../03_requirements.md) | [Воркшоп: Scrum Ceremonies](../workshop_02_agile.md)
-**Ціль:** Навчитися перетворювати Product Backlog на Sprint Backlog силами спеціалізованих команд.
-
----
-
-## Суть воркшопу
-
-PO приносить пріоритезований **Product Backlog**. Студенти діляться на команди за ролями. Кожна команда створює свій артефакт, після чого результати збираються у єдиний **Sprint Plan**.
+**Зв'язок з теорією:** [Лекція 3: Requirements](../03_requirements.md) | [Воркшоп: Scrum Ceremonies](../workshop_02_agile.md) | [Product Backlog](product_backlog.md)
+**Ціль:** Пройти повний цикл розробки вимог та планування через симуляцію ролей у децентралізованих сквадах.
 
 ---
 
-## Команди та артефакти
+## 👥 Структура Сквадів
+Група ділиться на **3 автономні Сквади**:
+- **Alpha** (Альфа)
+- **Beta** (Бета)
+- **Gamma** (Гамма)
 
-| Команда | Роль | Створює | Шаблон |
+**Склад кожного скваду:** ~7-9 осіб.
+**Ролі всередині (з ротацією):** Dev, QA, Ops, SME, UX.
+**PO / Scrum Master:** Викладач.
+
+---
+
+## 🗓 Дорожня карта (Multi-week Roadmap)
+
+Воркшоп розрахований на декілька тижнів з поступовим зануренням у ролі та зміною фокусу.
+
+### Етап 1: Старт та Орієнтація (День 1)
+- **Презентація проєкту VARTA:** Цілі, технічні виклики (Mesh, Offline-first, CRDT).
+- **Реєстрація:** Створення команд, розподіл по сквадах Alpha/Beta/Gamma.
+- **Ознайомлення:** Аналіз [Product Backlog](product_backlog.md).
+
+### Етап 2: Аналіз та Уточнення (Тиждень 2)
+- **Фокус:** **SME (Subject Matter Experts)** та **UX/Design**.
+- **Діяльність:** 
+    - Сквади проводять **Sprint Planning**.
+    - SME уточнюють доменні правила та BAU (Business As Usual).
+    - UX малюють Lo-fi flow для критичних User Stories.
+- **Результат:** Оновлені вимоги з AC та візуальними схемами.
+
+### Етап 3: Синхронізація (Тиждень 3)
+- **Фокус:** Церемонії та вирівнювання.
+- **Діяльність:**
+    - Симуляція **Daily Scrum** (синхронізація прогресу уточнення).
+    - Проведення **Sprint Retrospective** за результатами фази аналізу.
+    - Підготовка до технічної деталізації.
+
+### Етап 4: Технічна деталізація та Ротація (Тиждень 4+)
+- **Зміна ролей:** Студенти змінюють спеціалізацію всередині скваду.
+- **Фокус:** **DEV** (Технічні таски), потім **OPS** (Інфраструктура), потім **QA** (Тест-плани).
+- **Діяльність:** Поступове наповнення технічними тасками згідно з ролями.
+
+---
+
+## 🛠 Матриця відповідальності (по фазах)
+
+| Фаза (Тиждень) | Пріоритетна Роль | Що створюється | Шаблон / Артефакт |
 | :--- | :--- | :--- | :--- |
-| **PO / BA** | Приносить задачі від бізнесу, відповідає на питання | Пріоритезований Product Backlog (User Stories) | [product_backlog.md](product_backlog.md) |
-| **Dev** | Деталізує Stories, створює Technical Tasks | User Stories + Technical Tasks (API, DB schema) | [dev_template.md](dev_template.md) |
-| **QA** | Пише критерії приймання та план тестування | AC (Given/When/Then) + Test Plan | [qa_template.md](qa_template.md) |
-| **Ops / DevOps** | Визначає інфраструктурні залежності | CI/CD Pipeline + Environment + NFR checklist | [ops_template.md](ops_template.md) |
-| **SME** | Валідує бізнес-логіку та доменні правила | Domain Constraints + BAU-вимоги | [sme_template.md](sme_template.md) |
-| **UX / Design** | Створює wireframes та user flows | Lo-fi wireframes + User Flow diagram | [ux_template.md](ux_template.md) |
-
-> **Примітка:** Залежно від розміру групи, UX/Design і SME можна об'єднати з іншими командами.
+| **1: Startup** | PO / All | Формування сквадів | [Backlog](product_backlog.md) |
+| **2: Analysis** | **SME + UX** | Domain Logic + User Flow | [SME](sme_template.md) / [UX](ux_template.md) |
+| **3: Engineering** | **DEV** | Technical Tasks + API | [Dev](dev_template.md) |
+| **4: Platform** | **OPS** | CI/CD + Environment | [Ops](ops_template.md) |
+| **5: Quality** | **QA** | Acceptance Criteria + Tests | [QA](qa_template.md) |
 
 ---
 
-## Граф залежностей
+## 🔄 Механіка Ротації
+Кожні 1-2 тижні (після проведення Ретроспективи) сквад може перерозподілити ролі. Це дозволяє кожному студенту:
+1. Побути в ролі того, хто *ставить* вимоги (SME/UX).
+2. Побути в ролі того, хто *виконує* таски (DEV).
+3. Побути в ролі того, хто *забезпечує* стабільність (OPS/QA).
+
+---
+
+## Граф залежностей (Flow)
 
 ```mermaid
-graph TD
-    PO["PO / BA<br/>Product Backlog"] --> DEV["Dev<br/>User Stories + Tech Tasks"]
-    PO --> SME["SME<br/>Domain Constraints"]
-    PO --> UX["UX/Design<br/>Wireframes + User Flows"]
-    UX --> DEV
+graph LR
+    SME["SME<br/>Rules"] --> UX["UX<br/>Flows"]
+    UX --> DEV["DEV<br/>Tasks"]
     SME --> DEV
-    DEV --> QA["QA<br/>AC + Test Plan"]
-    DEV --> OPS["Ops/DevOps<br/>CI/CD + Env + NFR"]
-    QA --> SPRINT["Sprint Backlog<br/>(фінальна збірка)"]
-    OPS --> SPRINT
-    DEV --> SPRINT
+    DEV --> OPS["OPS<br/>Infrastructure"]
+    DEV --> QA["QA<br/>Testing"]
+    OPS --> DONE["Sprint Ready"]
+    QA --> DONE
 ```
 
 ---
 
-## Flow воркшопу
+## 📝 Конвенція оформлення тікетів (GitHub Project)
 
-### Фаза 1: Вхідний документ (5 хв)
-PO представляє [Product Backlog](product_backlog.md) (3–5 User Stories різного розміру).
-Команди задають уточнюючі питання, використовуючи [контрольні питання з Лекції 3](../03_requirements.md#8-приховані-вимоги-та-bau-business-as-usual).
+Усі тікети створюються в [GitHub Project](https://github.com/users/vplanto/projects/1).
 
-### Фаза 2: Паралельна робота команд (20 хв)
+### Naming Convention (заголовок тікету)
 
-| Команда | Що робить | Використовує з Лекції 3 |
+Формат: `ТИП-## EP-XX US-YY | Короткий опис англійською`
+
+| Тип | Префікс | Приклад заголовку |
 | :--- | :--- | :--- |
-| **Dev** | Деталізує Stories → Technical Tasks | User Stories, INVEST, Декомпозиція |
-| **QA** | Пише AC для кожної Story | Acceptance Criteria (Given/When/Then) |
-| **Ops** | Визначає env, CI/CD, NFR | FR / NFR / Constraints |
-| **SME** | Валідує бізнес-правила, шукає BAU | Приховані вимоги, BAU |
-| **UX** | Малює wireframes | User Stories |
+| Доменне правило | `DR-##` | `DR-01 EP-02 US-06 \| Quota transfer requires Trust ≥ 2` |
+| BAU-процес | `BAU-##` | `BAU-01 EP-02 US-07 \| Local ledger on Mesh disconnect` |
+| Edge Case | `EC-##` | `EC-01 EP-04 US-14 \| Medical vs Comms priority conflict` |
+| User Story | `US-##` | `US-01 EP-01 \| Offline device registration` |
+| Technical Task | `TT-##` | `TT-01 EP-02 US-07 \| CRDT merge algorithm for quotas` |
+| Test Case | `TC-##` | `TC-01 EP-05 US-20 \| Multi-hop delivery at-least-once` |
+| Ops Task | `OPS-##` | `OPS-01 EP-03 US-13 \| Telemetry buffer rotation policy` |
 
-### Фаза 3: Cross-review (10 хв)
-Команди обмінюються артефактами:
-- Dev перевіряє, чи AC від QA покривають edge cases
-- QA перевіряє, чи Technical Tasks відповідають User Stories
-- Ops перевіряє, чи Dev врахував NFR
-- SME валідує, що BAU-процеси не порушені
+### Тіло тікету (описується українською)
 
-### Фаза 4: Sprint Planning (10 хв)
-- Оцінка задач (Planning Poker — див. [Scrum Ceremonies](../workshop_02_agile.md))
-- Формування Sprint Backlog з урахуванням capacity
+Тіло кожного тікету містить:
+- **Тип** — категорія (Domain Rule / BAU / Edge Case / Technical Task / ...)
+- **Сквад** — Alpha / Beta / Gamma
+- **Пов'язані Stories** — US-XX, US-YY
+- **Опис** — детальний опис українською
+- **Залежності** — `#<номер>` пов'язаного тікету
 
----
+### Labels (обов'язкові)
 
-## Зв'язок з Лекцією 3 (Requirements)
-
-| Концепція з Лекції 3 | Де застосовується |
+| Label | Значення |
 | :--- | :--- |
-| User Stories (As / I want / So that) | Dev деталізує Stories |
-| Acceptance Criteria (Given/When/Then) | QA пише AC |
-| Приховані вимоги / BAU | SME виявляє неочевидні бізнес-правила |
-| INVEST критерії | Dev перевіряє Stories перед оцінкою |
-| Декомпозиція (Epic → Story → Task) | Dev розбиває великі Stories на Tasks |
-| FR / NFR / Constraints | Ops виділяє NFR та Constraints |
-| BACCM (Need → Change → Solution) | Всі команди розуміють контекст |
+| `squad:alpha` / `squad:beta` / `squad:gamma` | Приналежність до скваду |
+| `domain-rule` / `bau` / `edge-case` / `tech-task` / `test-case` / `ops` | Тип тікету |
+| `EP-01` ... `EP-06` | Приналежність до Epic |
 
 ---
 
 **[⬅️ Повернутися до Scrum Ceremonies](../workshop_02_agile.md)** | **[⬅️ Повернутися до головного меню курсу](../index.md)**
+
