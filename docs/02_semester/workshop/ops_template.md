@@ -3,7 +3,7 @@
 **Проєкт:** VARTA (Distributed Resilience Orchestrator)
 **Сквад:** Alpha / Beta / Gamma *(вказати свій)*
 **GitHub Project:** [VARTA Board](https://github.com/users/vplanto/projects/1)
-**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [Dev](dev_template.md)
+**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [Dev](dev_template.md) | [QA](qa_template.md)
 
 ---
 
@@ -72,7 +72,7 @@
 
 Визначте, де і як запускаються компоненти VARTA.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад: Environment</summary>
 
 **Заголовок:** `OPS-01 EP-03 US-13 | Telemetry buffer storage on edge device`
@@ -108,7 +108,7 @@
 
 Як код потрапляє на пристрої.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад: CI/CD</summary>
 
 **Заголовок:** `OPS-02 EP-01 US-01 | OTA update pipeline for Mesh nodes`
@@ -144,7 +144,7 @@
 
 Як дізнатись, що система працює.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад: Monitoring</summary>
 
 **Заголовок:** `OPS-03 EP-03 US-12 | Health check for critical IoT sensors`
@@ -177,7 +177,7 @@
 
 Шифрування, доступ, ізоляція.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад: Security</summary>
 
 **Заголовок:** `OPS-04 EP-01 US-02 | Key storage for Web of Trust on Android`

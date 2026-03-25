@@ -3,7 +3,7 @@
 **Проєкт:** VARTA (Distributed Resilience Orchestrator)
 **Сквад:** Alpha / Beta / Gamma *(вказати свій)*
 **GitHub Project:** [VARTA Board](https://github.com/users/vplanto/projects/1)
-**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [SME Template](sme_template.md)
+**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [SME Template](sme_template.md) | [QA](qa_template.md)
 
 ---
 
@@ -62,7 +62,7 @@
 **Залежності:** #<номер пов'язаного тікету>
 ```
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад тікету user-flow</summary>
 
 **Заголовок:** `UF-01 EP-02 US-06 | Transfer quota to neighbor`
@@ -134,7 +134,7 @@
 > - **ASCII-art** прямо в тілі тікету.
 > Головне — **структура**, не краса.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад тікету wireframe</summary>
 
 **Заголовок:** `WF-01 EP-02 US-05 | Quota balance dashboard`

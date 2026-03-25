@@ -128,7 +128,7 @@ The customer adds an item while riding an elevator (internet disappears).
 2. What are the business consequences if you choose CP (Consistency)?
 3. How do you resolve a merge conflict if the customer added an item on the phone (offline), then removed it on the laptop (online), and then the phone reconnects?
 
-<details>
+<details markdown="1">
 <summary>Architect’s answer</summary>
 
 1. **Choice:** definitely **AP (Availability)**. The business will never allow blocking the “Buy” button due to bad internet. Money beats perfect consistency.

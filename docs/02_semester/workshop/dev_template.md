@@ -3,7 +3,7 @@
 **Проєкт:** VARTA (Distributed Resilience Orchestrator)
 **Сквад:** Alpha / Beta / Gamma *(вказати свій)*
 **GitHub Project:** [VARTA Board](https://github.com/users/vplanto/projects/1)
-**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [SME](sme_template.md) | [UX](ux_template.md)
+**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [SME](sme_template.md) | [UX](ux_template.md) | [QA](qa_template.md)
 
 ---
 
@@ -65,7 +65,7 @@
 **Залежності:** #<номер пов'язаного тікету>
 ```
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад: Декомпозиція US-06 (Transfer Quota)</summary>
 
 **User Story:** *"Як мешканець, хочу передати частину своєї квоти іншому учаснику."*

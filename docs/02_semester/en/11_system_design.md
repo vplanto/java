@@ -11,7 +11,7 @@
 
 **Question 1:** What is the fundamental difference between a Senior Developer’s job and a Solution Architect’s?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 * **Senior Developer:** Focus on **local optimization** (Clean Code, SOLID, algorithmic complexity inside a function).
@@ -25,7 +25,7 @@
 
 **Question 2:** You have perfect code with 100% test coverage. But in Production the system crashes. Why?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 The problem is **runtime constraints**. Unit tests live in a vacuum.  
@@ -38,7 +38,7 @@ Production has:
 
 **Question 3:** If AI can generate code in seconds, why do we need an architect?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 AI generates **implementation**, not **strategy**.  
@@ -292,7 +292,7 @@ An architect is the person who makes the **most expensive decisions** before the
 *Situation: You’re building a system for a Tier 1 telecom operator. You need to add analytics.*  
 **Question:** Which direction (N/S/E/W) does integration with external Google Analytics belong to? What about an internal Hadoop Data Warehouse?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 * **Google Analytics:** Client-side integration; from backend perspective it’s invisible. For server-side tracking, it’s **Southbound** (an external sink we write to without waiting for a response).
@@ -305,21 +305,21 @@ An architect is the person who makes the **most expensive decisions** before the
 ### 9. Final check questions (checklist)
 
 1. **On NFRs:** Why is “fast” a bad requirement? How should an architect specify performance requirements?
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 “Fast” can’t be measured. An architect says: “P99 Latency < 200ms at 10k RPS”. That means 99% of requests are faster than 200ms even under load.
 </details>
 
 2. **On artifacts:** You’re changing the billing database schema. Which document do you prepare first?
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 **Impact Analysis** (who is affected) and **ADR** (why we do it and how we migrate).
 </details>
 
 3. **On directions:** Where does the Load Balancer belong on an architecture diagram?
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 **Northbound**. It’s the system’s shield.
@@ -327,7 +327,7 @@ An architect is the person who makes the **most expensive decisions** before the
 
 4. **On fallacies:** Your team says: “We won’t handle network timeouts because our datacenter is reliable.” What mistake are they making?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 The “Network is reliable” trap. You need **Retry (with jitter)** and a **Circuit Breaker**.
 </details>

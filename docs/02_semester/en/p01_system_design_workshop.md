@@ -15,7 +15,7 @@ It looks like a 15-minute task for a 1st-year student.
 
 **Million-dollar question:** If it’s so simple, why do engineers fail this task in Google interviews?
 
-<details>
+<details markdown="1">
 <summary>Answer</summary>
 
 Because writing code that works for **one** user is easy.  

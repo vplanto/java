@@ -3,7 +3,7 @@
 **Проєкт:** VARTA (Distributed Resilience Orchestrator)
 **Сквад:** Alpha / Beta / Gamma *(вказати свій)*
 **GitHub Project:** [VARTA Board](https://github.com/users/vplanto/projects/1)
-**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [Лекція 3: Requirements](../03_requirements.md)
+**Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [QA](qa_template.md) | [Лекція 3: Requirements](../03_requirements.md)
 
 ---
 
@@ -55,7 +55,7 @@
 **Залежності:** #<номер пов'язаного тікету>
 ```
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад тікету domain-rule</summary>
 
 **Заголовок:** `DR-01 EP-02 US-06 | Quota transfer requires Trust ≥ 2`
@@ -110,7 +110,7 @@
 > 4. **Що НЕ повинна робити система?** → Не замінювати екстрені служби (112). Рішення диспетчера — рекомендаційні.
 > 5. **Що вважається успіхом через 6 місяців?** → Громада автономно розподіляє ресурси без зовнішнього втручання.
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад тікету bau</summary>
 
 **Заголовок:** `BAU-01 EP-02 US-07 | Local ledger on Mesh disconnect`
@@ -161,7 +161,7 @@
 **Залежності:** #<номер пов'язаного тікету>
 ```
 
-<details>
+<details markdown="1">
 <summary>📋 Приклад тікету edge-case</summary>
 
 **Заголовок:** `EC-01 EP-04 US-14 | Medical vs Comms priority conflict at charge < 10%`
