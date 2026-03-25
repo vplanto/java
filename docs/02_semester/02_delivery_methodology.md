@@ -336,11 +336,22 @@ graph LR
 ```
 
 <details markdown="1">
+<summary>Product Backlog Refinement (Sprint Grooming) — підготовка до Planning</summary>
+
+У **Scrum Guide** це називається **Product Backlog Refinement**; у командах ту саму діяльність часто називають **Sprint Grooming** або **Backlog Grooming**. Це **не окрема обов’язкова церемонія з фіксованим слотом**, а **регулярна активність** протягом спринту: уточнення User Stories і **Acceptance Criteria**, оцінка в Story Points, дроблення завеликих елементів, з’ясування залежностей і ризиків разом із PO.
+
+**Навіщо:** щоб на **Sprint Planning** зверху backlog був уже **зрозумілий і придатний для відбору**, а не вперше «відкривався» зі списку в залі. Refinement відповідає на питання *«чи ми розуміємо задачу і скільки вона коштує в SP?»*; Planning — на *«що саме беремо в цей спринт і яка Sprint Goal?»*
+
+Практика на курсі (воркшоп VARTA): [Sprint Grooming і Sprint Planning](workshop/plan.md#grooming-and-planning), симуляція церемоній — [практикум Scrum](workshop_02_agile.md).
+
+</details>
+
+<details markdown="1">
 <summary>Sprint Planning — старт ітерації</summary>
 
 Meta — відповісти на два питання: що команда може зробити за цей Sprint (Sprint Goal) і як саме (розбивка на задачі).
 
-Вхід — пріоритезований Product Backlog від PO. Вихід — Sprint Backlog: чіткий список задач на 2 тижні.
+**Вхід** — пріоритезований Product Backlog від PO; топ-елементи бажано попередньо **пройти Backlog Refinement** (див. блок вище), інакше зустріч розтягується на уточнення формулювань замість зобов’язання на спринт. **Вихід** — Sprint Backlog (чіткий список задач на 2 тижні) і узгоджена **Sprint Goal**.
 
 Практичне правило: якщо задачу не можна виконати за одну робочу сесію (≤8 год) — розбийте її далі.
 

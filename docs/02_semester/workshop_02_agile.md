@@ -3,7 +3,7 @@
 **Аудиторія:** 2-й курс (Junior Strong)
 **Зв'язок з теорією:** [Лекція 2: Delivery Methodology](02_delivery_methodology.md) | [Лекція 3: Requirements](03_requirements.md)
 **Продовження:** [Командне планування спринту](workshop/plan.md) — воркшоп із розподілом на команди (Dev, QA, Ops, SME)
-**Ціль:** Провести симуляцію 4 основних Scrum-церемоній (Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective) на прикладі реалістичного продуктового проєкту. Зрозуміти механіку виявлення проблем і прийняття рішень командою.
+**Ціль:** Провести симуляцію 4 основних Scrum-церемоній (Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective) на прикладі реалістичного продуктового проєкту. Зрозуміти механіку виявлення проблем і прийняття рішень командою. Перед Planning на воркшопі VARTA команда має вже пройти **Backlog Refinement** — див. [Sprint Grooming і Planning](workshop/plan.md#grooming-and-planning).
 
 ---
 
@@ -45,10 +45,18 @@ graph LR
 
 | Церемонія | Що робить сквад | Результат |
 | :--- | :--- | :--- |
-| **Sprint Planning** | Оцінює задачі (Planning Poker), формує Sprint Backlog | Sprint Backlog (що беремо в спринт) |
+| **Sprint Planning** | Після **refinement**: Poker за потреби, **зобов’язання** на спринт, Sprint Goal, Sprint Backlog | Sprint Backlog (що беремо в спринт) |
 | **Daily Scrum** | Синхронізує прогрес, знаходить блокери | Виявлені проблеми |
 | **Sprint Review** | Показує результат PO, отримує фідбек | Done / Not Done |
 | **Sprint Retrospective** | Аналізує процес, формулює Action Items | Покращення на наступний спринт |
+
+---
+
+## Підготовка: Backlog Refinement (Sprint Grooming)
+
+У **Scrum Guide** це називається **Product Backlog Refinement**; у командах те саме часто називають **grooming**. Це **не четверта «офіційна» церемонія з годиною в календарі**, а **регулярна активність**: уточнення опису задач, AC, залежностей, оцінка в SP, дроблення завеликих story — щоб до Sprint Planning зверху backlog був **готовий до відбору**.
+
+**На воркшопі:** сквад робить refinement **до** рольової гри Planning (див. [план VARTA](workshop/plan.md#grooming-and-planning)): перегляд [беклогу](workshop/product_backlog.md), питання до PO, чернетки вимог за ролями. На **Sprint Planning** не варто витрачати весь час на перше знайомство зі story — там фокус на **виборі** роботи на спринт і **Sprint Goal**.
 
 ---
 
@@ -59,8 +67,8 @@ graph LR
 
 ### Що відбувається крок за кроком:
 
-1. **PO представляє задачі** — показує [Product Backlog](workshop/product_backlog.md) (топ-4 задачі за пріоритетом).
-2. **Сквад задає питання** — уточнює, що саме потрібно (SME перевіряє бізнес-правила, UX питає про user flow).
+1. **PO нагадує пріоритет і прогрумовані задачі** — показує верхівку [Product Backlog](workshop/product_backlog.md) (топ за пріоритетом); елементи вже **уточнені на refinement**, інакше повертаємось до уточнень (міні-grooming).
+2. **Сквад задає короткі уточнювальні питання** — що саме входить у DoD цього спринту (SME — бізнес-правила, UX — user flow).
 3. **Planning Poker** — кожен показує карту (1, 2, 3, 5, 8, 13, 21). Хто поставив найбільше/найменше — **пояснює чому**.
 4. **Декомпозиція** — якщо задача > 13 SP, сквад розбиває її на менші частини.
 5. **Формування Sprint Backlog** — сквад набирає задачі до ліміту **~40 SP**.
