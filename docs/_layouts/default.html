@@ -6,6 +6,7 @@
   <title>{{ page.title | default: "Lectures" }}</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-light.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 
   <style>
     /* Центрування сторінки */
@@ -63,5 +64,7 @@
       mermaid.run();
     });
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', (event) => { hljs.highlightAll(); });</script>
 </body>
 </html>

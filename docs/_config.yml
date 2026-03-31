@@ -1,0 +1,17 @@
+# Jekyll Configuration for VARTA Java Course
+# Using Rouge for syntax highlighting
+markdown: kramdown
+highlighter: rouge
+
+# Basic site metadata
+title: "ONU Java Course"
+description: "Educational materials for Java Programming at ONU"
+
+# Exclude some things
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - "*.sublime-project"
+  - "*.sublime-workspace"
+  - .idea
+  - out
