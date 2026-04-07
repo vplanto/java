@@ -358,7 +358,7 @@ Container — запущений екземпляр Image, має власний
 
 </details>
 
-**Питання 2: Що таке Multi-Stage Build і為什麼він важливий для безпеки?**
+**Питання 2: Що таке Multi-Stage Build і і чому він важливий для безпеки?**
 
 <details markdown="1">
 <summary>Еталонна відповідь</summary>

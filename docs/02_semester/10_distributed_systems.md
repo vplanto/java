@@ -1,7 +1,7 @@
 # Лекція 10: Розподілені Системи. Чому мережа завжди бреше
 
 **Аудиторія:** 2-й курс (Junior Strong)
-**Ціль:** Зрозуміти, чим розподілена система відрізняється від монолітної. Навчитись виявляти типові патерни відмов, розбиратись в Observability і вміти troubleshootити реальні проблеми в Kubernetes.
+**Ціль:** Зрозуміти, чим розподілена система відрізняється від монолітної. Навчитись виявляти типові патерни відмов, розбиратись в Observability і вміти усувати несправності в реальних проблемах в Kubernetes.
 
 > **English version:** [English](en/10_distributed_systems.md)
 
@@ -302,13 +302,13 @@ kubectl describe pod pod-name      # events і стан
 
 ### QoS Classes: хто виживе при нестачі ресурсів
 
-Kubernetes евікує Pod'и в порядку від BestEffort до Guaranteed:
+Kubernetes витісняє Pod'и в порядку від BestEffort до Guaranteed:
 
-| QoS Class | Умова | Стійкість до евікції |
+| QoS Class | Умова | Стійкість до витіснення |
 | :--- | :--- | :--- |
 | Guaranteed | requests == limits для CPU і RAM | Найвища |
 | Burstable | requests < limits | Середня |
-| BestEffort | requests і limits не вказані | Перший на евікцію |
+| BestEffort | requests і limits не вказані | Перший на витіснення |
 
 Production-сервіси мають бути **Guaranteed** або **Burstable** з чітко заданими `limits`.
 

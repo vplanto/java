@@ -321,7 +321,7 @@ Branch coverage знаходить більше помилок, ніж line cove
 
 `@Mock` — чистий Mockito мок, не залежить від Spring. Використовується разом з `@ExtendWith(MockitoExtension.class)` без підняття Spring Context. Швидкий.
 
-`@MockBean` — реєструє мок у Spring Application Context. Потрібен коли тест підіймає Spring (як `@WebMvcTest`), щоб Spring міг інжектити мок у контролер через DI. Повільніший через ініціалізацію контексту.
+`@MockBean` — реєструє мок у Spring Application Context. Потрібен коли тест підіймає Spring (як `@WebMvcTest`), щоб Spring міг впроваджувати мок у контролер через DI. Повільніший через ініціалізацію контексту.
 
 Правило: якщо тестуєте без Spring — `@Mock`. Якщо Spring context потрібен — `@MockBean`.
 

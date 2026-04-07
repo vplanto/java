@@ -5,7 +5,7 @@
 **GitHub Project:** [VARTA Board](https://github.com/users/vplanto/projects/1)
 **Зв'язок:** [Product Backlog](product_backlog.md) | [План воркшопу](plan.md) | [SME](sme_template.md) | [UX](ux_template.md) | [Dev](dev_template.md)
 
-**Теорія:** [Лекція 3: Requirements](../03_requirements.md) (User Story, Acceptance Criteria, Given/When/Then) | [Лекція 6: QA Strategy](../06_qa_strategy.md) (STLC, піраміда тестів, CI/CD, Quality Gates)
+**Теорія:** [Лекція 3: Requirements](../03_requirements.md) (User Story, Acceptance Criteria) | [Лекція 6: QA Strategy](../06_qa_strategy.md) (STLC, піраміда) | [Лекція 8: Test Cases & Coverage](../08_test_cases.md) (AAA, EP, BVA)
 
 ---
 
@@ -15,11 +15,17 @@
 
 Кожен тест-кейс — це **окремий тікет** `TC-*` у [GitHub Project](https://github.com/users/vplanto/projects/1). Тікет = ваш артефакт перевірки.
 
-> **Зв’язок з Лекцією 3.** Acceptance Criteria — договір PO ↔ Dev; тест-кейс — конкретизація AC у кроки з очікуваним результатом. Якщо з AC не випливає жоден TC — AC занадто розмиті або неперевірні.
+> **Зв’язок з Лекцією 3.** Acceptance Criteria — договір PO ↔ Dev; тест-кейс — конкретизація AC у кроки з очікуваним результатом.
 >
-> **Зв’язок з Лекцією 6.** STLC починається з аналізу вимог; більшість перевірок — **Unit + Integration**, критичні user journeys — **E2E / ручний smoke**. Уникайте «перевернутої піраміди» (лише E2E).
+> **Зв’язок з Лекцією 6.** STLC починається з аналізу вимог; більшість перевірок — **Unit + Integration**, критичні user journeys — **E2E / ручний smoke**.
+>
+> **Зв’язок з Лекцією 8.** Використовуйте техінки **EP (класи еквівалентності)** та **BVA (граничні значення)** для пошуку сценаріїв (особливо для полів JSON та лімітів). Формулюйте тікет за патерном **AAA (Arrange-Act-Assert)**: чіткі передумови, одна дія та перевірка результату в БД чи API.
 >
 > 📝 **Naming Convention:** [Конвенція оформлення тікетів](plan.md#-конвенція-оформлення-тікетів-github-project). Заголовок англійською, тіло українською.
+>
+> 🤖 **Vibe Coding Tip (QA):** Використовуйте AI для генерації **Boundary Value Analysis** сценаріїв.
+> **Промпт:** *"Я маю опис поля: [напр. вік від 18 до 65]. Згенеруй список граничних значень для тестування (включаючи негативні та edge-cases) у форматі Markdown таблиці."*
+> Це допоможе вам не пропустити жодного "підступного" значення при проектуванні тест-кейсів.
 
 ---
 

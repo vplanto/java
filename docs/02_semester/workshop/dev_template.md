@@ -33,7 +33,7 @@
 - **Domain / Service** — бізнес-логіка, алгоритми, CRDT.
 - **Data** — моделі, сховище, міграції.
 - **Integration** — зовнішні системи, Mesh, IoT.
-- **UI** — відображення (якщо є фронтенд).
+- **CLI / Postman** — консольні команди або колекції запитів для тестування (UI не передбачається).
 
 ### Крок 3: Створіть тікети у GitHub Project
 
@@ -53,7 +53,7 @@
 **Сквад:** Alpha / Beta / Gamma
 **Пов'язані Stories:** US-XX
 **Labels:** tech-task, squad:xxx, EP-XX
-**Шар:** API / Domain / Data / Integration / UI
+**Шар:** API / Domain / Data / Integration / CLI-Postman
 
 **Опис:**
 <Що конкретно потрібно зробити>
@@ -161,6 +161,10 @@ QR містить: transaction_id, amount, sender_pub_key, signature.
 
 ## INVEST-перевірка перед створенням
 
+> 🤖 **Vibe Coding Tip (Dev):** AI — це ваш Force Multiplier. Використовуйте його для генерації **Boilerplate коду** (DTO, JPA-entities, мільйон геттерів) та **SQL-міграцій**. 
+> **Промпт:** *"Маючи OpenAPI файл, згенеруй Java DTO класи та Spring Data JPA інтерфейс для сутності [Entity]. Використовуй Lombok та перевір відповідність типам даних."*
+> Витрачайте час на архітектурні рішення, а не на рутину.
+
 Перед створенням кожного TT перевірте за критеріями [INVEST](../03_requirements.md):
 
 | Критерій | Питання | ✅ / ❌ |
@@ -169,7 +173,7 @@ QR містить: transaction_id, amount, sender_pub_key, signature.
 | **N**egotiable | Чи є простір для обговорення підходу? | |
 | **V**aluable | Чи наближає до Sprint Goal? | |
 | **E**stimable | Чи можна оцінити в SP? | |
-| **S**mall | Чи вміщується в 1 спринт (≤ 13 SP)? | |
+| **S**mall | Чи вміщується в 1 спринт (≤ 8 SP)? | |
 | **T**estable | Чи можна написати тест? | |
 
 ---
@@ -179,7 +183,7 @@ QR містить: transaction_id, amount, sender_pub_key, signature.
 - [ ] Вивчено User Stories, Domain Rules та User Flows
 - [ ] Кожна Story декомпозована на 2–5 Technical Tasks
 - [ ] Створено ≥ 5 тікетів `tech-task` у GitHub Project
-- [ ] Кожен TT має шар (API / Domain / Data / Integration / UI)
+- [ ] Кожен TT має шар (API / Domain / Data / Integration / CLI-Postman)
 - [ ] Кожен TT має Acceptance Criteria (чеклист)
 - [ ] Пройдено INVEST-перевірку
 - [ ] Всі тікети мають залежності та лейбли скваду

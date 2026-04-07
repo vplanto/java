@@ -52,7 +52,7 @@ Spring Boot дозволяє винести налаштування у зовн
     app.currency.commission=0.01
     ```
 
-3.  Модифікуйте `CurrencyService`. Використовуйте анотацію `@Value`, щоб Spring "впорснув" значення з файлу.
+3.  Модифікуйте `CurrencyService`. Використовуйте анотацію `@Value`, щоб Spring "впровадив" значення з файлу.
 
 ```java
 @Service
