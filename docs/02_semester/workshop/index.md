@@ -25,6 +25,7 @@
 - **[Scrum Master: Meeting 1](scrum_master_meeting_1.md)** — гід по проведенню Refinement та Poker Planning.
 - **[Scrum Master: Daily Stand-up](scrum_master_daily.md)** — чек-лист та сценарій для щоденних зустрічей.
 - **[Матриця обмежень (Poker Constraints)](scrum_master_poker_constraints.md)** — приховані NFR та ситуації для «прокачки» оцінок складності.
+- **[Scrum Master: Sprint Retrospective](scrum_master_retrospective.md)** — сценарій фасилітації ретроспективи з фокусом на крос-сквад залежності та Blameless Culture.
 
 ---
 
