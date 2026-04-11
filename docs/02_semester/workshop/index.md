@@ -26,6 +26,7 @@
 - **[Scrum Master: Daily Stand-up](scrum_master_daily.md)** — чек-лист та сценарій для щоденних зустрічей.
 - **[Матриця обмежень (Poker Constraints)](scrum_master_poker_constraints.md)** — приховані NFR та ситуації для «прокачки» оцінок складності.
 - **[Scrum Master: Sprint Retrospective](scrum_master_retrospective.md)** — сценарій фасилітації ретроспективи з фокусом на крос-сквад залежності та Blameless Culture.
+- **[Scrum Master: Sprint Review](scrum_master_sprint_review.md)** — гід по проведенню демо інкременту для стейкхолдерів з перевіркою DoD.
 
 ---
 
