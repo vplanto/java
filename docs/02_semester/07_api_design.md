@@ -631,6 +631,6 @@ Integration Lead усуває це трьома кроками:
 
 ---
 
-**[⬅️ Лекція 6: QA Strategy](06_qa_strategy.md)** | **[Лекція 8: Test Cases & Coverage ➡️](08_test_cases.md)**
+**[⬅️ Лекція 6: QA Strategy](06_qa_strategy.md)** | **[P07: API Practice ➡️](p07_api_practice.md)**
 
 **[⬅️ Повернутися до головного меню курсу](index.md)**

@@ -41,6 +41,7 @@
 | # | Лекція | Ключові теми |
 |---|---|---|
 | 7 | **[API Design](07_api_design.md)** | REST, HTTP Codes. Контракти та версіонування. OpenAPI |
+| P | **[P07: API Practice Lab](p07_api_practice.md)** | Практичне застосування: URL, статуси, OpenAPI, Breaking Changes |
 | 8 | **[Test Cases & Coverage](08_test_cases.md)** | BVA, Decision Table. Unit vs Integration. Testcontainers |
 | 9 | **[Docker & Containerization](09_docker.md)** | Dockerfile, Multi-stage build, cgroups, Docker Compose |
 

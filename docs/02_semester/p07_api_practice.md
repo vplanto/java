@@ -651,6 +651,6 @@ class LibraryControllerTest {
 
 ---
 
-**[⬅️ Лекція 7: API Design](07_api_design.md)** | **[P08: Testing Practice ➡️](p08_testing_practice.md)**
+**[⬅️ Лекція 7: API Design](07_api_design.md)** | **[Лекція 8: Test Cases ➡️](08_test_cases.md)**
 
 **[⬅️ Повернутися до головного меню курсу](index.md)**
