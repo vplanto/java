@@ -37,13 +37,13 @@ Docker вирішує це радикально: середовище пакує
 ```
 Віртуальна машина (VM):           Контейнер (Docker):
 ┌─────────────────────┐            ┌─────────────────────┐
-│    Application A    │            │    Application A     │
+│    Application A    │            │    Application A    │
 ├─────────────────────┤            ├─────────────────────┤
-│    Guest OS (Linux) │            │   Container Runtime  │
+│    Guest OS (Linux) │            │   Container Runtime │
 ├─────────────────────┤            ├─────────────────────┤
-│    Hypervisor       │            │    Host OS (Linux)   │
+│    Hypervisor       │            │    Host OS (Linux)  │
 ├─────────────────────┤            ├─────────────────────┤
-│    Host OS          │            │    Hardware          │
+│    Host OS          │            │    Hardware         │
 ├─────────────────────┤            └─────────────────────┘
 │    Hardware         │
 └─────────────────────┘
@@ -74,7 +74,21 @@ Docker вирішує це радикально: середовище пакує
 - `mnt` namespace: власна файлова система (не бачить файлів хоста)
 - `uts` namespace: власне hostname
 
-![Docker: Resource Isolation через cgroups (CPU, Memory, Network, Storage) — кожен контейнер отримує власну cgroup](attachments/l09_docker-07.png)
+```text
+┌──────────────────────────────────────────────┐
+│                  Host OS                     │
+│                                              │
+│  ┌────────────────┐      ┌────────────────┐  │
+│  │  Container A   │      │  Container B   │  │
+│  │ ────────────── │      │ ────────────── │  │
+│  │   cgroup A     │      │   cgroup B     │  │
+│  │  CPU: 1 core   │      │  CPU: 2 cores  │  │
+│  │  RAM: 512MB    │      │  RAM: 1024MB   │  │
+│  └────────────────┘      └────────────────┘  │
+└──────────────────────────────────────────────┘
+```
+> [!NOTE] Resource Isolation
+> Завдяки cgroups кожен контейнер отримує власні ліміти ресурсів (CPU, Memory, Network, Storage).
 
 Docker — це зручний CLI і daemon поверх цих механізмів. Коли ви запускаєте `docker run`, ядро Linux:
 1. Створює нові namespaces для ізоляції процесу.
@@ -115,9 +129,23 @@ Layer 2: FROM eclipse-temurin:21-jre    ← базовий образ
 Layer 1: debian:bookworm                ← база базового образу
 ```
 
-![AuFS: кожен шар Image — окремий read-only блок, Container додає Writable шар поверх (Copy-on-Write)](attachments/l09_docker-17.png)
+```text
+┌─────────────────────────────────┐
+│ Container Layer (Writable)      │ ← Зміни під час роботи (Copy-on-Write)
+├─────────────────────────────────┤
+│ Image Layer 4 (Read-Only)       │ ┐
+├─────────────────────────────────┤ │
+│ Image Layer 3 (Read-Only)       │ ├ Кешуються Docker-ом
+├─────────────────────────────────┤ │
+│ Image Layer 2 (Read-Only)       │ │
+├─────────────────────────────────┤ │
+│ Image Layer 1 (Read-Only)       │ ┘
+└─────────────────────────────────┘
+```
+> [!NOTE] Шарувата структура (Union File System)
+> Кожен шар Image — це окремий **read-only** блок. Контейнер додає лише тонкий **Writable шар** поверх них (механізм Copy-on-Write).
 
-Шари кешуються. Якщо шар не змінився — Docker не перезбирає його. Тому важливий порядок: рідко змінюване (залежності) — вгорі, часто змінюване (код) — внизу.
+Шари кешуються. Якщо шар не змінився — Docker не перезбирає його. Тому важливий порядок інструкцій у Dockerfile: рідко змінюване (базовий образ, залежності) — на початку файлу, часто змінюване (ваш код) — в кінці.
 
 ### Container (Контейнер)
 
@@ -343,7 +371,133 @@ jobs:
 
 ---
 
-## 9. Екзаменаційний пул (Exam Questions)
+## 9. Engineering Process & QA: Testcontainers і Shift-Left Testing
+
+Контейнеризація вирішує проблему розгортання, але часто залишається "за бортом" життєвого циклу тестування. Якщо інфраструктура (БД, брокери повідомлень) тестується тільки на етапі CI/CD або Staging-середовища, ми порушуємо концепцію **Shift-Left Testing** — виявлення помилок якомога раніше в процесі розробки.
+
+### Проблема: Розрив між розробкою та автотестами
+
+Традиційний підхід до інтеграційних тестів:
+1. Запустити локально (або в CI) `docker-compose up` з тестовою БД.
+2. Прогнати тести.
+3. Сподіватися, що ніхто не забув очистити стан БД між запусками.
+
+Це створює крихкі (flaky) тести та ускладнює локальну розробку.
+
+### Рішення: Testcontainers
+
+**Testcontainers** — це Java-бібліотека, яка дозволяє управляти Docker-контейнерами безпосередньо з коду тестів (наприклад, через JUnit).
+
+- **Ізоляція:** Кожен тестовий клас (або метод) може отримувати абсолютно чистий, новий екземпляр бази даних у Docker-контейнері.
+- **Життєвий цикл:** Контейнер автоматично стартує перед тестом і гарантовано зупиняється (знищується) після його завершення (завдяки спеціальному контейнеру Ryuk).
+- **Shift-Left в дії:** Розробник може запустити інтеграційні тести локально зі своєї IDE, і вони будуть працювати точно так само, як у CI-пайплайні, оскільки вони самі підіймають необхідну Docker-інфраструктуру.
+
+```java
+@Testcontainers
+@SpringBootTest
+class UserRepositoryTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+
+    @Test
+    void shouldSaveUser() {
+        // Контейнер з PostgreSQL гарантовано працює в цей момент
+    }
+}
+```
+
+Використання Testcontainers робить інтеграційні тести надійними, повторюваними та повністю незалежними від зовнішнього середовища. Це міст між розробкою, тестуванням і контейнеризацією.
+
+---
+
+## 10. JVM Mastery: Пам'ять у контейнерах (OOMKilled & Exit Code 137)
+
+Поширена помилка початківців: вважати, що ліміт пам'яті контейнера (`--memory=512m`) — це те ж саме, що й Heap-пам'ять для JVM (`-Xmx512m`).
+
+Якщо ви встановите однакові значення для контейнера і Heap, ваш застосунок майже гарантовано впаде з помилкою **OOMKilled (Exit Code 137)**.
+
+### Математика розподілу пам'яті: Heap vs Non-Heap
+
+Загальна пам'ять, яку споживає процес Java (Total Memory), складається з:
+
+```
+Total Memory = Heap + Metaspace + CodeCache + Thread Stacks + Direct Buffers + JVM Overhead
+```
+
+- **Heap** (`-Xmx`): Пам'ять для ваших об'єктів.
+- **Non-Heap**:
+  - **Metaspace**: Зберігає метадані класів (Spring генерує багато класів через рефлексію та проксі).
+  - **CodeCache**: Зберігає скомпільований JIT-компілятором код (нативний код для швидкості).
+  - **Thread Stacks**: Кожен потік (thread) резервує пам'ять під свій стек (зазвичай 1MB на потік). 200 потоків Tomcat = ~200MB.
+
+**Правило:** Heap повинен становити приблизно 50-75% від ліміту контейнера. Решта має залишитись для Non-Heap та операційної системи.
+
+```bash
+# ❌ Погано: OOMKilled гарантований (Non-Heap вийде за межі ліміту контейнера)
+docker run --memory=512m -e JAVA_TOOL_OPTIONS="-Xmx512m" my-app
+
+# ✅ Добре: Heap = 300MB, ще 212MB залишається для Non-Heap
+docker run --memory=512m -e JAVA_TOOL_OPTIONS="-Xmx300m" my-app
+```
+
+> [!TIP]
+> У сучасних версіях Java (починаючи з Java 10+) JVM "розуміє", що вона працює в cgroups (контейнері), і рекомендується використовувати параметр `-XX:MaxRAMPercentage=75.0` (замість жорсткого `-Xmx`). Це автоматично виділить 75% виділеної контейнеру пам'яті під Heap.
+
+---
+
+## 11. System Architecture: GraalVM Native Image та боротьба з Cold Start
+
+Java має класичну проблему **Cold Start (Холодний старт)**. При запуску JVM ініціалізує класи, Spring сканує classpath, розв'язує залежності та створює бін-контекст. Це займає секунди, що є неприйнятним для Serverless (наприклад, AWS Lambda) або миттєвого автоскейлінгу в Kubernetes (Scale-to-Zero).
+
+### Рішення: GraalVM Native Image (індустріальний стандарт)
+
+Починаючи з Spring Boot 3.x, фреймворк має повноцінну підтримку **GraalVM Ahead-of-Time (AOT) компіляції**.
+
+Замість того, щоб пакувати байт-код у `.jar` і запускати його на JRE, GraalVM аналізує ваш код на етапі збірки і компілює його у платформо-залежний машинний код (native executable), який не потребує наявності JVM для запуску.
+
+**Порівняння:**
+
+| Характеристика | Класичний JIT (JVM) | GraalVM AOT (Native Image) |
+| :--- | :--- | :--- |
+| Час запуску (Startup) | ~2–5 секунд | **~0.05 секунд (50 мс)** |
+| Споживання пам'яті | ~300-500 MB | **~50-100 MB** |
+| Розмір Docker-образу | ~200-300 MB | **~30-50 MB** |
+| Пікова продуктивність | Вища (завдяки JIT-оптимізації в рантаймі) | Трохи нижча (статична компіляція) |
+
+### Як виглядає Dockerfile з GraalVM?
+
+Збірка Native Image вимагає багато ресурсів (CPU/RAM) і часу (до 5-10 хвилин).
+
+```dockerfile
+# Stage 1: Build Native Image
+FROM ghcr.io/graalvm/native-image-community:21 AS builder
+WORKDIR /build
+COPY . .
+# AOT компіляція у бінарний файл (native executable)
+RUN ./mvnw -Pnative native:compile
+
+# Stage 2: Minimal Runtime (без JRE)
+FROM ubuntu:22.04
+WORKDIR /app
+# Копіюємо тільки бінарник (який не потребує Java)
+COPY --from=builder /build/target/my-app ./my-app
+EXPOSE 8080
+ENTRYPOINT ["./my-app"]
+```
+
+Це сучасний архітектурний підхід, який дозволяє Java-мікросервісам конкурувати з Go та Rust за ефективністю використання ресурсів у хмарних середовищах.
+
+---
+
+## 12. Екзаменаційний пул (Exam Questions)
 
 **Питання 1: У чому різниця між Docker Image і Docker Container?**
 
