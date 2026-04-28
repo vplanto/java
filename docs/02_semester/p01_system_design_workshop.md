@@ -165,33 +165,33 @@ MD5 від URL, обрізаємо до 7 символів. Проблема: о
 
 ```mermaid
 graph TD
-    Client(["Клієнт"]) -->|HTTP 80/443| North
+    Client([Клієнт]) -->|HTTP 80/443| North
 
     subgraph "Північ: Входові двері"
-        North["Load Balancer <br> HAProxy / Nginx"]
+        North[Load Balancer <br> HAProxy / Nginx]
     end
 
     subgraph "Центр: Application Layer"
-        App1["App Service 1 <br> Stateless"]
-        App2["App Service 2 <br> Stateless"]
+        App1[App Service 1 <br> Stateless]
+        App2[App Service 2 <br> Stateless]
     end
 
     North --> App1
     North --> App2
 
     subgraph "Південь: Дані"
-        Redis[("Redis <br> Кеш &lt; 10ms")]
-        Postgres[("PostgreSQL <br> Золота копія")]
+        Redis[(Redis <br> Кеш до 10ms)]
+        Postgres[(PostgreSQL <br> Золота копія)]
     end
 
-    App1 -->|Read (Fast)| Redis
+    App1 -->|Read Fast| Redis
     App1 -->|Read/Write| Postgres
-    App2 -->|Read (Fast)| Redis
+    App2 -->|Read Fast| Redis
     App2 -->|Read/Write| Postgres
 
     subgraph "Схід-Захід: Допоміжні сервіси"
-        IDGen[("Postgres <br> Sequence Ranges")]
-        Kafka[["Kafka <br> Async Analytics"]]
+        IDGen[(Postgres <br> Sequence Ranges)]
+        Kafka[[Kafka <br> Async Analytics]]
     end
 
     App1 -.->|Fetch ID Range 1-1000| IDGen
