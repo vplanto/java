@@ -25,25 +25,49 @@
 
 ---
 
-## 🛑 Stop & Think: Проблема "Товстого Контролера"
+## Архітектура запиту (Request Flow)
 
-Уявіть, що нам треба написати логіку конвертації валют з комісією, яка залежить від дня тижня.
-Студент-новачок напише це прямо в методі контролера (`@GetMapping`).
+Перш ніж писати код, давайте подивимось на правильний життєвий цикл обробки запиту (Request Lifecycle) у тришаровій архітектурі Spring:
 
-**Чому це погано (Engineering Flaw)?**
-1.  **Testing:** Щоб протестувати математику комісії, вам доведеться піднімати весь веб-сервер. Це повільно (секунди замість мілісекунд).
-2.  **Reusability:** Якщо цей код знадобиться в мобільному додатку або в Telegram-боті — ви не зможете його викликати, бо він "зашитий" у веб-контролер.
-3.  **Single Responsibility:** Контролер — це "секретар" (прийняв запит, віддав відповідь). Він не повинен бути "бухгалтером" (рахувати гроші).
+```mermaid
+sequenceDiagram
+    actor Client
+    participant DS as DispatcherServlet<br/>(Spring Framework)
+    participant Controller as @RestController<br/>(API Layer)
+    participant Service as @Service<br/>(Business Logic)
+
+    Client->>DS: HTTP Request (напр. GET /api/data)
+    Note over DS: Spring шукає потрібний Controller
+    DS->>Controller: Передає запит (Routing)
+    Note over Controller: Контролер НЕ рахує бізнес-логіку
+    Controller->>Service: Викликає метод сервісу
+    Note over Service: Тут виконується складна логіка
+    Service-->>Controller: Повертає результат (DTO/Модель)
+    Controller-->>DS: Повертає об'єкт
+    Note over DS: Spring серіалізує об'єкт у JSON (Jackson)
+    DS-->>Client: HTTP Response (напр. 200 OK + JSON)
+```
 
 ---
 
-## Крок 1. Створення Service Layer (Business Logic)
+## Частина 1: Створення Service Layer (Business Logic) (15 хв)
 
+### Бізнес-сценарій: Проблема "Товстого Контролера"
+Уявіть, що нам треба написати логіку конвертації валют з комісією, яка залежить від дня тижня. Студент-новачок напише це прямо в методі контролера (`@GetMapping`).
+
+> [!CAUTION]
+> **Чому це архітектурна помилка (Engineering Flaw)?**
+> 1.  **Testing:** Щоб протестувати математику комісії, вам доведеться піднімати весь веб-сервер. Це повільно (секунди замість мілісекунд).
+> 2.  **Reusability:** Якщо цей код знадобиться в мобільному додатку або в Telegram-боті — ви не зможете його викликати, бо він "зашитий" у веб-контролер.
+> 3.  **Single Responsibility:** Контролер — це "секретар" (прийняв запит, віддав відповідь). Він не повинен бути "бухгалтером" (рахувати гроші).
+
+### Завдання 1.1: Створення Сервісу
 Ми виносимо логіку в окремий клас. У Spring це називається **Service**.
 
-1.  Створіть пакет `service`.
+1.  Створіть пакет `ua.edu.demoservice.service`.
 2.  Створіть клас `CurrencyService`.
 
+**Файл: src/main/java/ua/edu/demoservice/service/CurrencyService.java**
 ```java
 package ua.edu.demoservice.service;
 
@@ -59,28 +83,27 @@ public class CurrencyService {
         return amount * USD_RATE;
     }
 }
-
 ```
 
 ---
 
-## Крок 2. Dependency Injection (Правильне "Зв'язування")
-Тепер найважливіший момент. Контролеру потрібен Сервіс.
-**Як їх з'єднати?**
+## Частина 2: Dependency Injection — Правильне "Зв'язування" (15 хв)
 
-❌ **Legacy Way (Field Injection - ЗАБОРОНЕНО):**
+### Бізнес-сценарій
+Тепер найважливіший момент. Контролеру потрібен Сервіс, щоб рахувати гроші. Як їх з'єднати так, щоб код залишився стабільним і тестованим?
 
-```java
-@Autowired
-private CurrencyService currencyService; // Не робіть так. Це унеможливлює Unit-тестування.
+> [!CAUTION]
+> **Legacy Way: Field Injection (Заборонено)**
+> ```java
+> @Autowired
+> private CurrencyService currencyService; 
+> ```
+> Не робіть так! Це унеможливлює Unit-тестування без підняття всього фреймворку.
 
-```
+### Завдання 2.1: Constructor Injection
+Ми передаємо залежність через конструктор. Це робить клас стабільним, а його залежності — явними.
 
-✅ **Modern Engineering Way (Constructor Injection):**
-Ми передаємо залежність через конструктор. Це робить клас стабільним та зрозумілим.
-
-Модифікуйте (або створіть новий) `CurrencyController`:
-
+**Файл: src/main/java/ua/edu/demoservice/controller/CurrencyController.java**
 ```java
 package ua.edu.demoservice.controller;
 
@@ -88,10 +111,10 @@ import org.springframework.web.bind.annotation.*;
 import ua.edu.demoservice.service.CurrencyService;
 
 @RestController
-@RequestMapping("/api/currency") // Базовий URL для всіх методів
+@RequestMapping("/api/currency")
 public class CurrencyController {
 
-    private final CurrencyService currencyService; // final гарантує незмінність
+    private final CurrencyService currencyService;
 
     // Spring автоматично знайде потрібний сервіс і передасть його сюди
     public CurrencyController(CurrencyService currencyService) {
@@ -104,31 +127,26 @@ public class CurrencyController {
         return currencyService.convertUsdToUah(amount);
     }
 }
-
 ```
 
----
-
-##  Engineering Deep Dive: Чому Constructor Injection?
-Чому ми змушуємо вас писати конструктори, якщо `@Autowired` над полем виглядає коротше?
-
-<details markdown="1">
-<summary>Відповідь (Архітектурна надійність)</summary>
-
-1. **Immutability:** Поле `currencyService` можна зробити `final`. Це гарантує, що ніхто не підмінить сервіс посеред роботи програми. При Field Injection поле має бути змінним (mutable).
-2. **Testing without Spring:** У Unit-тестах ви можете створити контролер вручну: `new CurrencyController(new MockService())`. Вам не потрібно запускати важкий Spring Context.
-3. **Circular Dependencies:** Якщо Сервіс А хоче Сервіс Б, а Сервіс Б хоче Сервіс А — конструктор впаде одразу при запуску, явно вказавши на помилку проєктування. Field Injection може приховати цю проблему до моменту виклику (Runtime Exception).
-
-</details>
+> [!IMPORTANT]
+> **Engineering Deep Dive: Чому Constructor Injection?**
+> Чому ми пишемо більше коду замість одного `@Autowired`?
+> 1. **Immutability:** Поле `currencyService` можна зробити `final`. Ніхто не підмінить сервіс посеред роботи програми.
+> 2. **Testing without Spring:** У Unit-тестах ви можете створити контролер вручну: `new CurrencyController(new MockService())`. Швидко і просто.
+> 3. **Circular Dependencies:** Якщо Сервіс А залежить від Б, а Б від А — конструктор впаде одразу при запуску програми, явно вказавши на помилку проєктування. Field Injection приховує це до моменту першого виклику.
 
 ---
 
-## Крок 3. Data Transfer Objects (DTO)
-Хороший API не повертає просто число `1540.0`. Він повертає структуровані дані.
+## Частина 3: Data Transfer Objects (DTO) (10 хв)
 
-1. Створіть пакет `dto`.
-2. Створіть запис (Record) — це сучасний аналог POJO для носіїв даних (Java 17+).
+### Бізнес-сценарій
+Хороший API не повертає клієнту просто число `1540.0`. Фронтенд-розробникам потрібні структуровані дані з контекстом (що це за валюта, яка була оригінальна сума).
 
+### Завдання 3.1: Створення DTO
+Створіть запис (Record) — це сучасний аналог POJO для незмінних носіїв даних.
+
+**Файл: src/main/java/ua/edu/demoservice/dto/CurrencyResponse.java**
 ```java
 package ua.edu.demoservice.dto;
 
@@ -137,31 +155,35 @@ public record CurrencyResponse(
     double originalAmount,
     double convertedAmount
 ) {}
-
 ```
 
-3. Оновіть Контролер:
+### Завдання 3.2: Оновлення Контролера
+Додайте новий ендпоінт, який повертатиме об'єкт.
 
+**Файл: src/main/java/ua/edu/demoservice/controller/CurrencyController.java**
 ```java
     @GetMapping("/convert-details")
     public CurrencyResponse convertWithDetails(@RequestParam double amount) {
         double result = currencyService.convertUsdToUah(amount);
         return new CurrencyResponse("UAH", amount, result);
     }
-
 ```
 
 ---
 
-##  Завдання "На захист" (Challenge)
-Реалізуйте логіку "Обмінного пункту":
+## Частина 4: Завдання "На захист" (Challenge) (15 хв)
+
+### Завдання: "Обмінний пункт"
+Самостійно реалізуйте логіку обмінного пункту з комісією:
 
 1. Додайте в `CurrencyService` метод `buyEuro(double uahAmount)`, який рахує курс (наприклад, 42.0) і знімає 1% комісії.
-2. Якщо сума переказу менше 100 грн — повертайте помилку (або `null`, або кидайте Exception, якщо вмієте його обробляти).
-3. Продемонструйте результат через Postman.
+2. Додайте валідацію: якщо сума переказу менше 100 грн — кидайте виключення `IllegalArgumentException("Minimum amount is 100 UAH")`.
+3. Додайте відповідний метод у контролер.
+4. Продемонструйте результат через браузер або Postman.
 
-**Питання для захисту:**
-Якщо я зміню бізнес-логіку комісії з 1% на 2%, скільки файлів у проєкті мені доведеться редагувати?
+> [!NOTE]
+> **Питання для захисту:**
+> Якщо я зміню бізнес-логіку комісії з 1% на 2%, скільки файлів у проєкті вам доведеться редагувати?
 
 <details markdown="1">
 <summary>Відповідь</summary>

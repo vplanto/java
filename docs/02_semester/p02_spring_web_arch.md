@@ -42,31 +42,55 @@
 * **Frontend (React/Angular):** Це повноцінний застосунок, що виконується на CPU клієнта.
 * **Protocol:** HTTP/REST.
 
-> **Engineering Rule:** "Never make the server do what the client can do." Ми перекладаємо рендеринг на пристрої користувачів (Distributed Computing), економлячи свій CPU.
+> **Інженерне правило:** «Ніколи не змушуй сервер робити те, що може зробити клієнт». Ми перекладаємо рендеринг на пристрої користувачів (Distributed Computing), економлячи свій CPU.
 
 ---
 
 ## 2. Spring Framework: Dependency Injection як захист архітектури
 
-Чому ми не пишемо `new UserService()`? Це питання не стилю, а **Maintainability**.
+Чому ми не пишемо `new UserService()`? Це питання не стилю, а **Maintainability** (підтримуваності). Використання `new` створює **Tight Coupling** (жорстку зв'язність).
 
-### 2.1. Inversion of Control (IoC)
-Коли ви пишете `new`, ви "приварюєте" одну деталь до іншої намертво.
-У Enterprise-системах це неприпустимо, бо:
-1.  **Testing:** Ви не зможете підмінити базу даних на "InMemory Mock" для Unit-тестів.
-2.  **Flexibility:** Зміна реалізації вимагає перекомпіляції всього ланцюжка викликів.
+### 2.1. Inversion of Control (IoC) та Dependency Injection (DI)
 
-**Рішення Spring:**
-Контейнер (Application Context) сам створює об'єкти (Beans) і зв'язує їх.
-* **Ви:** Описуєте "контракт" (Interface).
-* **Spring:** Знаходить реалізацію і робить "Wiring" (зв'язування).
+Коли ви пишете `new`, ви "приварюєте" одну деталь до іншої намертво. 
+
+**❌ Проблема: Жорстка зв'язність (Tight Coupling)**
+```java
+public class OrderController {
+    // Контролер сам створює залежність. Він намертво прив'язаний до конкретного класу.
+    private UserService userService = new UserServiceImpl(); 
+}
+```
+У Enterprise-системах такий підхід неприпустимий, бо:
+1.  **Testing (Тестування):** Ви не зможете ізолювати `OrderController` для Unit-тестів. Замість фейкового мока (Mock) для `UserService`, ваш тест потягне за собою реальну базу даних.
+2.  **Flexibility (Гнучкість):** Якщо з'явиться нова реалізація (наприклад, `VipUserServiceImpl`), доведеться шукати по всьому проєкту `new UserServiceImpl()` і змінювати код.
+3.  **Lifecycle (Життєвий цикл):** Якщо `UserService` важкий в ініціалізації, ви захочете зробити його Singleton'ом. З `new` вам доведеться самостійно писати логіку кешування об'єктів.
+
+**✅ Рішення Spring: Dependency Injection (DI)**
+Контейнер (Application Context) забирає у вас право створювати об'єкти (це і є **Inversion of Control** — інверсія контролю). Він сам створює об'єкти (Beans) і "впроваджує" їх туди, де вони потрібні.
+
+```java
+@RestController
+public class OrderController {
+    private final UserService userService;
+
+    // Spring сам знайде потрібну реалізацію і передасть її через конструктор
+    @Autowired 
+    public OrderController(UserService userService) {
+        this.userService = userService;
+    }
+}
+```
+
+* **Ви:** Описуєте "контракт" (Interface) та вказуєте залежності (через конструктор).
+* **Spring:** Аналізує анотації, знаходить потрібну реалізацію і робить "Wiring" (зв'язування).
 
 
 ### 2.2. Ціна магії (Runtime Overhead)
 Чи безкоштовно це? Ні.
 * **Startup Time:** Spring сканує класи при запуску (Reflection API). Це займає час (секунди).
 * **Memory Footprint:** Контейнер споживає RAM для зберігання метаданих бінів.
-* **Висновок:** Для мікросервісів, що живуть довго — це ОК. Для AWS Lambda (Serverless), де важливий старт за мілісекунди — Spring Boot може бути заважким (тут краще GraalVM).
+* **Висновок:** Для довгоживучих мікросервісів це ОК. Але для AWS Lambda (Serverless), де важливий старт за мілісекунди, використовують **Spring AOT (Ahead-Of-Time)** компіляцію разом з **GraalVM**. AOT переносить важке сканування класів та створення конфігурацій з етапу запуску (Runtime) на етап компіляції (Build time), що робить старт майже миттєвим.
 
 ---
 
@@ -77,7 +101,7 @@ Spring Boot вирішує проблему **Time-to-Market**.
 
 ### 3.1. Starter Packs vs Dependency Hell
 * **Без Boot:** Інженер витрачає 2 дні на узгодження версій бібліотек (`jackson 2.9` конфліктує з `spring-web 4.3`).
-* **З Boot:** `spring-boot-starter-web`. Одна залежність. "Опінійна" (Opinionated) збірка. Всі версії протестовані сумісно.
+* **З Boot:** `spring-boot-starter-web`. Одна залежність. «Попередньо налаштована» (Opinionated) збірка з готовими рішеннями. Всі версії протестовані сумісно.
 
 ### 3.2. Auto-Configuration
 Це не магія, це **Conditional Logic**.
@@ -100,7 +124,9 @@ if (classpath.contains("PostgreSQL-Driver") && !beans.contains("DataSource")) {
 
 ---
 
-##  Engineering Case Study: Валідація даних
+## 4. Engineering Case Study: Валідація даних та межі довіри
+
+У першому розділі ми сформулювали правило: *«Ніколи не змушуй сервер робити те, що може зробити клієнт»*. Це чудово працює для рендерингу UI. Але що станеться, якщо ми, в гонитві за економією ресурсів сервера, застосуємо це правило до перевірки критичних даних? Давайте розглянемо практичний кейс.
 **Ситуація:**
 Ви розробляєте фінтех-додаток. Потрібно перевірити, що сума переказу > 0.
 Студент пропонує: *"Давайте перевіримо це на Frontend в JavaScript, щоб не навантажувати сервер".*

@@ -8,15 +8,14 @@
 
 ---
 
-## Мета заняття
-
-Запакувати готовий Spring Boot сервіс у Docker-образ, підняти його разом з PostgreSQL через Docker Compose і переконатись, що «it works on every machine».
-
----
-
 ## Частина 1: Dockerfile для Spring Boot (20 хв)
 
-### Вправа 1.1: Що не так у цьому Dockerfile?
+### Бізнес-сценарій: "Works on my machine"
+У вас на ноутбуці стоїть Java 21 і база даних на порту 5432. Ви пишете код, віддаєте колезі, а у нього Java 17 і база зайнята іншим проєктом. Результат — сервіс не стартує.
+Щоб це вирішити, ми пакуємо наш застосунок разом із його оточенням (JRE) у Docker-образ. Тепер сервіс гарантовано запуститься на будь-якому комп'ютері або сервері.
+
+### Завдання 1.1: Аналіз поганого Dockerfile (Антипатерни)
+Подивіться на цей код. Це типовий Dockerfile новачка.
 
 ```dockerfile
 FROM openjdk:8
@@ -27,31 +26,17 @@ EXPOSE 8080
 CMD java -jar target/app.jar
 ```
 
-Знайдіть щонайменше 4 проблеми.
+> [!CAUTION]
+> **Чому цей код ніколи не пройде Code Review:**
+> 1. **Застаріла база:** `openjdk:8` — це end-of-life Java 8 без патчів безпеки.
+> 2. **Відсутність кешування:** `COPY . /app` та `RUN mvn package` в одному шарі означає, що зміна одного `.java` файлу призведе до повторного завантаження всього інтернету (залежностей Maven).
+> 3. **Гігантський розмір:** У фінальному образі лежить JDK (компілятор). Образ буде важити ~700MB, хоча для запуску достатньо JRE (~200MB).
+> 4. **Немає Graceful Shutdown:** `CMD java -jar` без масиву `[]` запускається через shell. Контейнер не отримає сигнал SIGTERM при зупинці, і ваші користувачі отримають помилки під час деплою.
 
-<details markdown="1">
-<summary>Відповідь</summary>
+### Завдання 1.2: Створення оптимального Dockerfile
+Створіть файл `Dockerfile` у корені вашого проєкту. Ми використаємо **Multi-stage build**: на першому етапі компілюємо код (потрібен важкий JDK), на другому — пакуємо лише готовий `jar` (потрібен легкий JRE).
 
-| # | Проблема | Чому це погано | Як виправити |
-|---|---|---|---|
-| 1 | `openjdk:8` | Java 8 — end-of-life. Немає security-патчів | `eclipse-temurin:21-jre` |
-| 2 | `COPY . /app` разом з `RUN mvn package` | Не використовується кешування. При зміні будь-якого файлу — перезавантажує всі залежності | Multi-stage з окремим `COPY pom.xml` |
-| 3 | JDK у runtime-образі | Образ важить ~700MB. У prod JDK не потрібен | Multi-stage: builder (JDK) + runtime (JRE) |
-| 4 | `CMD java -jar` без масиву | При такій формі Java не отримує SIGTERM → нема graceful shutdown | `ENTRYPOINT ["java", "-jar", "app.jar"]` |
-
-</details>
-
-### Вправа 1.2: Напишіть правильний Dockerfile
-
-Напишіть оптимальний Dockerfile для Spring Boot сервісу з урахуванням:
-- Multi-stage build
-- Кешування залежностей
-- Мінімальний розмір образу
-- Graceful shutdown
-
-<details markdown="1">
-<summary>Рішення</summary>
-
+**Файл: Dockerfile**
 ```dockerfile
 # ── Stage 1: Build ─────────────────────────────────────────────
 FROM eclipse-temurin:21-jdk AS builder
@@ -74,7 +59,7 @@ WORKDIR /app
 # Копіюємо лише jar з builder-стейджу
 COPY --from=builder /build/target/*.jar app.jar
 
-# Не root-користувач — hardening
+# Security hardening: Не запускаємо від root
 RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 USER appuser
 
@@ -87,28 +72,24 @@ ENTRYPOINT ["java", \
             "-jar", "app.jar"]
 ```
 
-`-XX:+UseContainerSupport` — JVM читає cgroup-ліміти, а не RAM хоста.
-`-XX:MaxRAMPercentage=75.0` — JVM використовує 75% виділеної пам'яті контейнера.
-
-</details>
+> [!TIP]
+> **Секрети JVM у Docker:**
+> Зверніть увагу на прапорці `-XX:+UseContainerSupport` та `-XX:MaxRAMPercentage=75.0`. Без них Java буде дивитись на оперативну пам'ять хоста (наприклад, 16 ГБ), виділить гігантський Heap, перевищить ліміти контейнера і буде вбита системою (OOMKilled).
 
 ---
 
 ## Частина 2: Docker Compose (25 хв)
 
-### Вправа 2.1: Запуск з PostgreSQL
+### Бізнес-сценарій: Database persistence
+Наш сервіс не існує у вакуумі. Йому потрібна база даних PostgreSQL. Якби ми використовували звичайний Docker, нам довелося б вручну запускати контейнер з БД, налаштовувати мережу, а потім запускати застосунок. 
+`docker-compose` дозволяє описати всю інфраструктуру проєкту (App + Database) в одному файлі та підняти її однією командою.
 
-Напишіть `docker-compose.yml` для Library-сервісу з:
-- Spring Boot app
-- PostgreSQL 15
-- Правильним `depends_on` з health check
-- Persistence volume для БД
+### Завдання 2.1: Створення docker-compose.yml
+Напишіть `docker-compose.yml` у корені проєкту.
+Ми додаємо правильний `depends_on` (щоб аплікація чекала, поки БД буде готова приймати запити) та `volumes` (щоб дані не зникали при перезапуску контейнера).
 
-<details markdown="1">
-<summary>Рішення</summary>
-
+**Файл: docker-compose.yml**
 ```yaml
-# docker-compose.yml
 version: "3.9"
 
 services:
@@ -153,33 +134,26 @@ volumes:
   postgres_data:
 ```
 
-`.env` файл (не в Git!):
-```
+### Завдання 2.2: Секрети та змінні середовища
+У `docker-compose.yml` ми використовували `${DB_PASSWORD}`. Де його взяти?
+
+**Файл: .env (НІКОЛИ НЕ ПУШИТИ В GIT!)**
+```properties
 DB_PASSWORD=supersecretpassword
 ```
 
-`.env.example` (в Git, для документування):
-```
+**Файл: .env.example (Для Git, як документація)**
+```properties
 DB_PASSWORD=your-database-password-here
 ```
 
-</details>
+> [!CAUTION]
+> **Секрети у Git:** Якщо ви випадково закомітите `.env` з реальними паролями на GitHub — це інцидент безпеки. Використовуйте `.gitignore`.
 
-### Вправа 2.2: Корисні команди для відлагодження
+### Завдання 2.3: Корисні команди для відлагодження
+Запустіть середовище (`docker compose up -d`) та виконайте ці команди. Вони вам знадобляться на щоденній основі:
 
-Виконайте ці команди для запущеного Compose і поясніть, що кожна показує:
-
-```bash
-docker compose ps
-docker compose logs app --follow
-docker compose exec db psql -U library_user -d library -c "\dt"
-docker compose exec app /bin/sh -c "java -version"
-docker stats
-```
-
-<details markdown="1">
-<summary>Пояснення</summary>
-
+**Оточення: Термінал**
 ```bash
 # Статус всіх сервісів: ім'я, стан, порти
 docker compose ps
@@ -190,81 +164,57 @@ docker compose logs app --follow
 # Зайти в контейнер db і показати всі таблиці в БД library
 docker compose exec db psql -U library_user -d library -c "\dt"
 
-# Перевірити Java-версію всередині app-контейнера
-docker compose exec app /bin/sh -c "java -version"
-
 # Live-моніторинг CPU/RAM/Network по всіх контейнерах
 docker stats
 ```
-
-</details>
 
 ---
 
 ## Частина 3: Налагодження типових проблем (15 хв)
 
-### Вправа 3.1: Діагностика
+### Завдання 3.1: Діагностика інцидентів
+Ось реальні ситуації з якими ви зіткнетесь у Production. Як їх вирішити?
 
-Для кожної ситуації — знайдіть причину і команду для діагностики:
+> [!WARNING]
+> **Сценарій A: App стартує, але падає з `Connection refused to db:5432`**
+> **Причина:** База даних ще не готова приймати з'єднання, але Spring Boot вже намагається виконати міграції.
+> **Рішення:** Перевірити логи бази (`docker compose logs db`) та переконатись, що `depends_on` має `condition: service_healthy`, а healthcheck бази налаштований правильно.
 
-**Сценарій A:** App стартує, але не може підключитись до БД. Logs: `Connection refused to db:5432`.
+> [!WARNING]
+> **Сценарій B: App працює в Docker, але з хоста `:8080` дає `Connection refused`**
+> **Причина:** Порт не відкритий назовні, або Spring Boot слухає лише `127.0.0.1` всередині контейнера.
+> **Рішення:** Перевірити мапінг портів `ports: - "8080:8080"` у Compose. Зайти в контейнер (`docker compose exec app /bin/sh -c "ss -tlnp"`) і перевірити, чи сервер слухає `0.0.0.0`.
 
-**Сценарій B:** App стартує, але відповідає на `:8080` — `Connection refused` з хоста.
-
-**Сценарій C:** После оновлення `.env` — app все одно використовує старий пароль.
-
-<details markdown="1">
-<summary>Відповіді</summary>
-
-**Сценарій A:** DB ще не готова або health check не проходить.
-```bash
-docker compose logs db        # подивитись на помилки PostgreSQL
-docker compose ps             # перевірити статус: чи db (healthy)?
-# Якщо depends_on з condition: service_healthy не спрацював — revise healthcheck
-```
-
-**Сценарій B:** Порт не відкритий або binding на 127.0.0.1 замість 0.0.0.0.
-```bash
-docker compose exec app /bin/sh -c "ss -tlnp"   # слухає чи на 0.0.0.0:8080?
-# Перевірити EXPOSE та ports у docker-compose.yml
-# Spring Boot: server.address=0.0.0.0 (дефолт, не змінювати на localhost)
-```
-
-**Сценарій C:** Compose кешує environment. Треба перезапустити з `--env-file`.
-```bash
-docker compose down
-docker compose --env-file .env up -d
-# або
-docker compose up -d --force-recreate
-```
-
-</details>
+> [!WARNING]
+> **Сценарій C: Після оновлення `.env` app все одно використовує старий пароль**
+> **Причина:** Docker Compose кешує контейнери, якщо конфігурація YAML не змінилась.
+> **Рішення:** Перезапустити явно: `docker compose down` та `docker compose up -d` (або `docker compose up -d --force-recreate`).
 
 ---
 
-## Частина 4: Оптимізація образу (10 хв)
+## Частина 4: Оптимізація та FinOps (10 хв)
 
-### Вправа 4.1: Порівняйте розміри
+### Завдання 4.1: Порівняння розмірів образів
+Розмір Docker-образу безпосередньо впливає на вартість хмарного сховища (Registry) та швидкість завантаження сервісу (Cold Start).
 
+**Оточення: Термінал**
 ```bash
-# Збудуйте образ і порівняйте розміри
+# Збудуйте образ і порівняйте розміри (якщо у вас є naive Dockerfile)
 docker build -t library-app:naive -f Dockerfile.naive .
 docker build -t library-app:optimized -f Dockerfile .
 docker images | grep library-app
 ```
 
-Типові результати:
-
-| Образ | Базовий | Розмір |
-|---|---|---|
-| Naive (JDK, без multi-stage) | `openjdk:8` | ~650 MB |
-| Optimized (JRE, multi-stage) | `eclipse-temurin:21-jre` | ~220 MB |
-| Ultra-minimal (distroless) | `gcr.io/distroless/java21` | ~130 MB |
-
-Менший образ:
-- швидше завантажується з Registry при деплої
-- менша поверхня атаки (немає зайвих утиліт)
-- дешевший Registry storage
+> [!TIP]
+> **FinOps (Економіка хмари)**
+> 
+> | Образ | Базовий | Розмір |
+> |---|---|---|
+> | Naive (JDK, без multi-stage) | `openjdk:8` | ~650 MB |
+> | Optimized (JRE, multi-stage) | `eclipse-temurin:21-jre` | ~220 MB |
+> | Ultra-minimal (distroless) | `gcr.io/distroless/java21` | ~130 MB |
+> 
+> Менший образ це не лише про гроші. Це **швидший деплой** та **менша поверхня атаки** (у distroless образах немає навіть `sh` або `bash`, тому хакер не зможе виконати шелл-команди, якщо зламає ваш додаток).
 
 ---
 

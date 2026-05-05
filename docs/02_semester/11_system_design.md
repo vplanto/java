@@ -193,11 +193,65 @@ Pre-deployment: schema migration. Verification: `/health` повертає 200. 
 
 ## 7. Візуалізація: C4 Model
 
-Архітектор говорить з різними аудиторіями. C4 Model — стандарт індустрії.
+Архітектор говорить з різними аудиторіями: від CEO до Junior Developer. Щоб не перевантажувати одних і не лишати без деталей інших, використовується **C4 Model** (автор Саймон Браун).
 
-**Рівень A: Logical Design («What»).** Аудиторія — бізнес, PM. Показуємо Value Streams: Клієнт → Замовлення → Оплата → Доставка. Жодних серверів, лише бізнес-сутності.
+Це підхід «масштабованої карти» (як Google Maps): ви можете дивитися на всю країну, а можете на конкретний будинок.
 
-**Рівень Б: Physical Design («Where»).** Аудиторія — DevOps, SRE. Топологія розгортання: «Замовлення» → K8s Deployment (3 replicas, 200m CPU), «Оплата» → External API Stripe, зв'язок — Ingress Controller, TLS v1.3.
+### Рівні C4
+
+**L1: System Context (Контекст)**
+- **Що показуємо:** Систему як «чорну скриньку» в оточенні користувачів та інших систем.
+- **Ціль:** Зрозуміти межі системи (Scope).
+- **Аудиторія:** Бізнес, менеджери, архітектори.
+- *Приклад:* Система Інтернет-магазину ↔ Клієнт, Інтернет-магазин ↔ Stripe (платежі), Інтернет-магазин ↔ Служба доставки.
+
+**L2: Container (Контейнери)**
+- **Що показуємо:** Окремо розгорнуті модулі (Web App, Mobile App, Database, Microservice, File Storage).
+- **Ціль:** Технологічний стек і спосіб комунікації (HTTP, gRPC, RabbitMQ).
+- **Аудиторія:** Розробники, DevOps.
+- *Приклад:* React Frontend ↔ Java Spring Boot API ↔ PostgreSQL ↔ Kafka.
+
+**L3: Component (Компоненти)**
+- **Що показуємо:** Внутрішню структуру одного контейнера.
+- **Ціль:** Розподіл відповідальності всередині коду (Services, Repositories, Controllers).
+- **Аудиторія:** Тільки розробники.
+- *Приклад:* OrderController ↔ OrderService ↔ PaymentGatewayClient ↔ OrderRepository.
+
+**L4: Code (Код)**
+- **Що показуємо:** UML-діаграми класів, Entity Relationship.
+- **Ціль:** Деталі імплементації.
+- **Аудиторія:** Тільки розробники.
+- *Приклад:* Зв'язки між класами `Order`, `OrderItem` та `Address`.
+- **Важливо:** Зазвичай цей рівень генерується автоматично або не малюється взагалі, бо він занадто швидко застаріває.
+
+---
+
+### Logical vs Physical Design
+
+Важливо розрізняти **Logical View** (структура коду) та **Deployment View** (де це запущено фізично).
+
+1. **Logical Design (C4 L1-L3):** «Які модулі існують і як вони логічно пов'язані».
+2. **Physical/Deployment Design:** «На якому сервері лежить база, скільки реплік у Kubernetes, де стоїть Load Balancer».
+
+```mermaid
+graph TD
+    subgraph L1 ["L1: Context (E-commerce System)"]
+    U[Customer] --> S[E-shop System]
+    S --> ES[Payment Gateway]
+    end
+
+    subgraph L2 ["L2: Containers (Inside E-shop)"]
+    WA[React Frontend] --> API[Java API App]
+    API --> DB[(PostgreSQL)]
+    API --> K[Kafka]
+    end
+
+    subgraph L3 ["L3: Components (Inside API)"]
+    JC[Order Controller] --> JS[Order Service]
+    JS --> JR[Order Repository]
+    JS --> PGC[Payment Client]
+    end
+```
 
 ---
 
@@ -205,9 +259,9 @@ Pre-deployment: schema migration. Verification: `/health` повертає 200. 
 
 Архітектор приймає найдорожчі рішення до написання першого рядка коду. Помилка на етапі дизайну коштує в 100 разів дорожче за баг у коді.
 
-### Ticketmaster: Distributed Locking fail
+### Ticketmaster: Taylor Swift (The Eras Tour, 2022)
 
-При продажу квитків тисячі користувачів намагались купити одне місце одночасно. Optimistic locking на рівні БД не витримав — база впала від кількості ROLLBACK-транзакцій.
+При продажу квитків на тур Тейлор Свіфт тисячі користувачів (і ботів) намагались купити одне місце одночасно. Optimistic locking на рівні БД не витримав — база «задихнулася» від мільйонів ROLLBACK-транзакцій.
 
 Урок: для High Contention ресурсів (квитки, складські залишки) потрібна черга або in-memory серіалізація запитів, а не прямий запис у БД.
 

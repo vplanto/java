@@ -26,15 +26,12 @@
 
 ---
 
-## 🛑 Engineering Context: Scaffolding
+## Частина 1: Scaffolding та генерація проєкту (10 хв)
 
-У Enterprise-розробці вартість налаштування проєкту вручну (створення папок, пошук `.jar` файлів, налаштування білд-скриптів) — це втрачені гроші бізнесу.
-[cite_start]Ми використовуємо **Spring Initializr** — генератор, який створює "скелет" (Scaffolding) аплікації з гарантовано сумісними версіями бібліотек[cite: 58].
+### Бізнес-сценарій
+У Enterprise-розробці вартість налаштування проєкту вручну (створення папок, пошук `.jar` файлів, налаштування білд-скриптів) — це втрачені гроші бізнесу. Ми використовуємо **Spring Initializr** — генератор, який створює "скелет" (Scaffolding) аплікації з гарантовано сумісними версіями бібліотек.
 
----
-
-## Крок 1. Генерація проєкту
-
+### 1.1: Генерація через Spring Initializr
 1.  Перейдіть на [start.spring.io](https://start.spring.io/).
 2.  **Project Metadata** (Налаштування білда):
     * **Project:** Maven.
@@ -44,41 +41,38 @@
     * **Artifact:** `demo-service`
     * **Java:** 17 (або 21 LTS).
 3.  **Dependencies** (Критично важливо):
-    * [cite_start]Додайте **Spring Web**[cite: 142]. [cite_start]Це ключовий стартер для розробки веб-застосунків або RESTful сервісів[cite: 142].
+    * Додайте **Spring Web**. Це ключовий стартер для розробки веб-застосунків або RESTful сервісів.
     * *(Опціонально)* **Lombok**.
-4.  Натисніть **GENERATE**, розпакуйте та відкрийте `pom.xml` в IDEA.
+4.  Натисніть **GENERATE**, розпакуйте та відкрийте файл `pom.xml` у вашій IDEA.
 
 ---
 
-## Крок 2. Анатомія `pom.xml` та Dependency Management
+## Частина 2: Анатомія pom.xml та Dependency Management (5 хв)
 
 Подивіться у файл `pom.xml`. Чому у `spring-boot-starter-web` немає версії?
 
+**Файл: pom.xml**
 ```xml
 <dependencies>
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+    </dependency>
 </dependencies>
-
 ```
 
-<details markdown="1">
-<summary>Інженерний інсайт: BOM</summary>
-
-Версії керуються через **BOM (Bill of Materials)** у батьківському `spring-boot-starter-parent`.
-Це вирішує проблему **Dependency Hell**: розробники Spring вже протестували, що Tomcat версії X працює з Jackson версії Y. Вам не потрібно підбирати їх вручну.
-
-</details>
+> [!NOTE]
+> **Інженерний інсайт: BOM (Bill of Materials)**
+> Версії керуються через батьківський `spring-boot-starter-parent`. Це вирішує проблему **Dependency Hell**: розробники Spring вже протестували, що Tomcat версії X працює з Jackson версії Y. Вам не потрібно підбирати їх вручну.
 
 ---
 
-## Крок 3. Перший Endpoint (Controller)
-Веб-сервер повинен мати точку входу. Створіть клас `GreetingController`.
+## Частина 3: Перший Endpoint (Controller) (10 хв)
 
-**Шлях:** `src/main/java/ua/edu/demoservice/controller/GreetingController.java`
+### Завдання
+Веб-сервер повинен мати точку входу (Endpoint). Створіть клас `GreetingController`, який буде обробляти HTTP-запити.
 
+**Файл: src/main/java/ua/edu/demoservice/controller/GreetingController.java**
 ```java
 package ua.edu.demoservice.controller;
 
@@ -96,51 +90,60 @@ public class GreetingController {
         return String.format("System status: OK. Welcome, %s!", name);
     }
 }
-
 ```
 
----
-
-## Крок 4. Запуск Embedded Server
-1. Запустіть метод `main` у класі `DemoServiceApplication`.
-2. Лог: `Tomcat started on port 8080 (http)`.
-
-**Концептуальна зміна:**
-Ми не встановлювали сервер окремо. Spring Boot використовує **Embedded servlet container** (вбудований сервер), що дозволяє створювати автономні (stand-alone) додатки.
+> [!TIP]
+> **Анотації — це метадані**
+> `@RestController` каже Spring: "Знайди цей клас під час старту, створи його екземпляр (Bean) і направляй сюди HTTP-запити".
 
 ---
 
-##  Давайте поміркуємо: Еволюція даних (String vs JSON)
-**Кейс:** Вище ми повернули клієнту простий рядок (`String`).
-Сучасні фронтенд-фреймворки (Angular, React) очікують об'єкти.
-Як змусити Java-об'єкт автоматично перетворитися на JSON без ручного парсингу рядків?
+## Частина 4: Запуск Embedded Server (5 хв)
 
-<details markdown="1">
-<summary>Архітектурне рішення (DTO)</summary>
+### Завдання
+1. Відкрийте клас `DemoServiceApplication`.
+2. Запустіть метод `main` (зелена стрілочка в IDE).
+3. Перевірте консоль: ви маєте побачити рядок `Tomcat started on port 8080 (http)`.
 
-1. **Створюємо DTO (Data Transfer Object):** Використовуємо `record` для незмінних даних.
+> [!IMPORTANT]
+> **Концептуальна зміна: Cloud Native**
+> Ми не встановлювали веб-сервер (Tomcat) окремо. Spring Boot використовує **Embedded servlet container** (вбудований сервер). Це робить наш додаток автономним (stand-alone), що ідеально підходить для запуску в Docker контейнерах.
+
+---
+
+## Частина 5: Еволюція даних — від String до JSON (10 хв)
+
+### Бізнес-сценарій
+У попередньому кроці ми повернули клієнту простий рядок (`String`). Але сучасні фронтенд-фреймворки (Angular, React) та мобільні додатки очікують структуровані об'єкти у форматі JSON. Як змусити Java-об'єкт автоматично перетворитися на JSON без ручного парсингу рядків?
+
+### 5.1: Створення DTO (Data Transfer Object)
+Ми використовуємо `record` для незмінних даних, що передаються по мережі.
+
+**Завдання:** Створіть файл DTO.
+
+**Файл: src/main/java/ua/edu/demoservice/dto/SystemStatus.java**
 ```java
+package ua.edu.demoservice.dto;
+
 public record SystemStatus(String system, int users, boolean active) {}
-
 ```
 
+### 5.2: Оновлення Контролера
+Тепер змінимо наш контролер, щоб він повертав об'єкт замість рядка.
 
-2. **Змінюємо сигнатуру методу:**
+**Завдання:** Додайте новий метод у ваш `GreetingController`.
+
+**Файл: src/main/java/ua/edu/demoservice/controller/GreetingController.java**
 ```java
-@GetMapping("/api/status")
-public SystemStatus getStatus() {
-    return new SystemStatus("Demo-App", 42, true);
-}
-
+    @GetMapping("/api/status")
+    public SystemStatus getStatus() {
+        return new SystemStatus("Demo-App", 42, true);
+    }
 ```
 
-
-3. **Результат:** Spring (за допомогою бібліотеки Jackson) автоматично згенерує:
-`{"system": "Demo-App", "users": 42, "active": true}`.
-
-Ніякої ручної конкатенації рядків!
-
-</details>
+> [!NOTE]
+> **Магія серіалізації (Jackson)**
+> Вам не потрібно вручну писати конкатенацію рядків. Spring (за допомогою бібліотеки Jackson) автоматично перехопить об'єкт `SystemStatus` і згенерує ідеальний JSON: `{"system": "Demo-App", "users": 42, "active": true}`.
 
 ---
 

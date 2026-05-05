@@ -25,36 +25,40 @@
 
 ---
 
-## 🛑 Stop & Think: Hardcode is Evil
+## Частина 1: External Configuration (application.properties) (15 хв)
 
+### Бізнес-сценарій: Hardcode is Evil
 У вашому коді зараз є рядок:
 `private static final double USD_RATE = 38.5;`
 
-**Інженерний розбір:**
-Щоб змінити курс валют, вам потрібно:
-1.  Змінити Java-код.
-2.  Скомпілювати проєкт.
-3.  Зупинити сервер -> Залити нову версію -> Запустити сервер.
+> [!CAUTION]
+> **Чому це неприпустимо (Engineering Flaw)?**
+> Щоб змінити курс валют, вам потрібно:
+> 1. Змінити Java-код.
+> 2. Скомпілювати проєкт.
+> 3. Зупинити сервер -> Залити нову версію -> Запустити сервер.
+> Це призводить до Downtime і втрати грошей. Параметри, що змінюються, повинні бути ззовні коду.
 
-Це неприпустимо для параметрів, що часто змінюються.
-
----
-
-## Крок 1. External Configuration (`application.properties`)
-
+### Завдання 1.1: Винесення конфігурації
 Spring Boot дозволяє винести налаштування у зовнішні файли або змінні середовища.
 
-1.  Відкрийте файл `src/main/resources/application.properties`.
-2.  Додайте туди бізнес-параметри:
-    ```properties
-    # Business Logic Config
-    app.currency.usd-rate=38.5
-    app.currency.commission=0.01
-    ```
+**Файл: src/main/resources/application.properties**
+```properties
+# Business Logic Config
+app.currency.usd-rate=38.5
+app.currency.commission=0.01
+```
 
-3.  Модифікуйте `CurrencyService`. Використовуйте анотацію `@Value`, щоб Spring "впровадив" значення з файлу.
+### Завдання 1.2: Впровадження конфігурації у Service
+Модифікуйте `CurrencyService`. Використовуйте анотацію `@Value`, щоб Spring "впровадив" значення з файлу.
 
+**Файл: src/main/java/ua/edu/demoservice/service/CurrencyService.java**
 ```java
+package ua.edu.demoservice.service;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 @Service
 public class CurrencyService {
 
@@ -72,30 +76,34 @@ public class CurrencyService {
     public double buyEuro(double uahAmount) {
         // Використовуємо this.usdRate замість хардкоду
         // ... логіка ...
+        return 0.0; // placeholder
     }
 }
-
 ```
 
-> **Перемога:** Тепер курс валют можна змінити навіть через змінну середовища при запуску Docker-контейнера (`--app.currency.usd-rate=40.0`), не чіпаючи код.
+> [!NOTE]
+> **Перемога 12-Factor App:** 
+> Тепер курс валют можна змінити навіть через змінну середовища при запуску Docker-контейнера (`--app.currency.usd-rate=40.0`), не чіпаючи код та не перекомпілюючи програму.
 
 ---
 
-## Крок 2. Глобальна обробка помилок (Global Exception Handling)
-Спробуйте відправити запит з від'ємною сумою: `/api/currency/convert?amount=-100`.
-Якщо ви додали просту перевірку `throw new RuntimeException(...)`, клієнт отримає статус `500 Internal Server Error` і купу страшного тексту (Stack Trace).
+## Частина 2: Глобальна обробка помилок (Global Exception Handling) (20 хв)
 
-**Це непрофесійно.**
+### Бізнес-сценарій
+Спробуйте відправити запит з від'ємною сумою: `/api/currency/convert?amount=-100`. Якщо ви додали просту перевірку `throw new RuntimeException(...)`, клієнт отримає статус `500 Internal Server Error` і купу страшного тексту (Stack Trace).
 
-* Помилка клієнта (невірні дані) — це статус `400 Bad Request`.
-* JSON має бути чистим: `{"error": "Сума не може бути від'ємною"}`.
+> [!IMPORTANT]
+> **Це непрофесійно.**
+> * Помилка клієнта (невірні дані) — це статус `400 Bad Request`.
+> * JSON має бути чистим: `{"error": "Сума не може бути від'ємною"}`.
 
-### Реалізація:
+### Завдання 2.1: Створення Controller Advice
 Spring має механізм "Перехоплювача помилок" — `@RestControllerAdvice`.
 
-1. Створіть пакет `exception`.
+1. Створіть пакет `ua.edu.demoservice.exception`.
 2. Створіть клас `GlobalExceptionHandler`.
 
+**Файл: src/main/java/ua/edu/demoservice/exception/GlobalExceptionHandler.java**
 ```java
 package ua.edu.demoservice.exception;
 
@@ -115,35 +123,38 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", e.getMessage()));
     }
 }
-
 ```
 
-3. Оновіть `CurrencyService`, щоб він кидав саме цю помилку:
-```java
-public double buyEuro(double uahAmount) {
-    if (uahAmount <= 0) {
-        throw new IllegalArgumentException("Сума має бути більше нуля");
-    }
-    // ...
-}
+### Завдання 2.2: Оновлення Сервісу
+Оновіть `CurrencyService`, щоб він кидав саме цю помилку при спробі передати від'ємну суму.
 
+**Файл: src/main/java/ua/edu/demoservice/service/CurrencyService.java**
+```java
+    public double buyEuro(double uahAmount) {
+        if (uahAmount <= 0) {
+            throw new IllegalArgumentException("Сума має бути більше нуля");
+        }
+        // ... бізнес-логіка ...
+        return 0.0;
+    }
 ```
 
 
 
 ---
 
-##  Завдання "На захист" (Challenge)
-У вас є файл `application.properties`.
-Реалізуйте механізм, де **повідомлення про помилку** також винесене в конфігурацію.
+## Частина 3: Завдання "На захист" (Challenge) (15 хв)
+
+### Завдання: Конфігурація повідомлень
+У вас є файл `application.properties`. Реалізуйте механізм, де **повідомлення про помилку** також винесене в конфігурацію.
 
 Тобто:
+1. У проперті файлі додайте: `app.messages.error.negative-amount=Не можна міняти повітря на гроші!`
+2. При помилці користувач має бачити саме цей текст, який "впроваджується" у ваш сервіс через `@Value`.
 
-1. У проперті файлі: `app.messages.error.negative-amount=Не можна міняти повітря на гроші!`
-2. При помилці користувач має бачити саме цей текст.
-
-**Питання для захисту:**
-Чому ми повертаємо `Map.of("error", ...)` а не просто рядок? Як це впливає на Frontend розробника?
+> [!NOTE]
+> **Питання для захисту:**
+> Чому ми повертаємо `Map.of("error", ...)` а не просто рядок? Як це впливає на Frontend розробника?
 
 <details markdown="1">
 <summary>Відповідь</summary>
