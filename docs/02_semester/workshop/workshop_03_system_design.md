@@ -1,10 +1,10 @@
-# Практикум P01: System Design Workshop. URL Shortener від нуля
+# Практикум: System Design Workshop. URL Shortener від нуля
 
 **Аудиторія:** 2-й курс (Junior Engineers)
 **Формат:** Live Design Session
 **Ціль:** Пройти шлях від абстрактної ідеї «зроби мені як bit.ly» до конкретної схеми бази даних та вибору алгоритмів, використовуючи AI як партнера в проєктуванні.
 
-> **English version:** [English](en/p01_system_design_workshop.md)
+> **English version:** [English](../en/p01_system_design_workshop.md)
 
 ---
 
@@ -381,6 +381,6 @@ Dedicated (EC2/K8s): фіксована ціна. Вигідно при стаб
 
 ---
 
-**[⬅️ Лекція 11: System Design Foundations](11_system_design.md)**
+**[⬅️ Лекція 11: System Design Foundations](../11_system_design.md)**
 
-**[⬅️ Повернутися до головного меню курсу](index.md)**
+**[⬅️ Повернутися до головного меню курсу](../index.md)**

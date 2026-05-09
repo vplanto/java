@@ -1,8 +1,8 @@
-# Практикум P07: API Design на практиці. Пишемо OpenAPI-специфікацію руками
+# Практикум P08: API Design на практиці. Пишемо OpenAPI-специфікацію руками
 
 **Аудиторія:** 2-й курс (Junior Strong)
 **Тип:** Hands-on Lab
-**Попередні вимоги:** [Лекція 7: API Design](07_api_design.md), базовий Spring Boot сервіс (P03)
+**Попередні вимоги:** [Лекція 7: API Design](../../07_api_design.md), проєкт `library-service` з виконаними [P03](p03_spring_zero_to_hero.md) (базовий сервіс), [P04](p04_spring_architecture_di.md) (шарова архітектура + DI) та [P05](p05_spring_production_ready.md) (конфігурація + `GlobalExceptionHandler` з `ApiError`)
 
 ---
 
@@ -192,14 +192,59 @@ public record LoanRequest(Long bookId, Long readerId) {}
 
 ## Частина 3: Реалізація розгалуженого API (25 хв)
 
-### 3.1: Створення LibraryController
+### 3.1: Розподіл логіки (Separation of Concerns)
 
-Тепер ми переходимо до написання коду, виправляючи помилки, які ми знайшли під час аудиту. Наш контролер повинен суворо дотримуватися REST-контрактів та повертати коректні HTTP-статуси.
+Замість того, щоб створювати єдиний гігантський `LibraryController`, ми розділимо логіку за предметною областю:
+- **`BookController` / `BookService`**: управління книгами (отримання, видалення).
+- **`LoanController` / `LoanService`**: управління позиками (видача книг, розрахунок штрафів).
 
 > [!CAUTION]
-> **Vibe Coding Protocol (AI Ownership):** Ви можете попросити AI згенерувати код `LibraryController`. АЛЕ ваша зона відповідальності — переконатися, що згенерований код суворо відповідає правильним HTTP-статусам з Частини 1. Якщо AI за звичкою запропонує `200 OK` для видалення ресурсу — ви маєте змусити його виправити це на `204 No Content`.
+> **Vibe Coding Protocol (AI Ownership):** Ви можете попросити AI згенерувати код цих контролерів. АЛЕ ваша зона відповідальності — переконатися, що згенерований код суворо відповідає правильним HTTP-статусам з Частини 1. Якщо AI запропонує `200 OK` для видалення ресурсу — ви маєте змусити його виправити це на `204 No Content`.
 
-**Відкрийте файл src/main/java/ua/edu/onu/library/controller/LibraryController.java та імплементуйте наступне:**
+**1. Оновіть існуючий `BookController` (з P04) та `BookService`:**
+Додайте методи для отримання книги та видалення.
+
+```java
+package ua.edu.onu.library.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ua.edu.onu.library.dto.Book;
+import ua.edu.onu.library.exception.UnauthorizedException;
+import ua.edu.onu.library.service.BookService;
+
+@RestController
+@RequestMapping("/api/v1/books")
+public class BookController {
+
+    private final BookService bookService;
+
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
+
+    @GetMapping("/{id}")
+    public Book getBook(@PathVariable Long id, @RequestHeader("X-Auth-Token") String token) {
+        validateAuth(token);
+        return bookService.findBookById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content
+    public void deleteBook(@PathVariable Long id, @RequestHeader("X-Auth-Token") String token) {
+        validateAuth(token);
+        bookService.deleteBook(id);
+    }
+
+    private void validateAuth(String token) {
+        if (token == null || !token.equals("test-token")) {
+            throw new UnauthorizedException("Missing or invalid X-Auth-Token");
+        }
+    }
+}
+```
+
+**2. Створіть новий `LoanController`:**
 
 ```java
 package ua.edu.onu.library.controller;
@@ -207,49 +252,28 @@ package ua.edu.onu.library.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ua.edu.onu.library.dto.Book;
 import ua.edu.onu.library.dto.Loan;
 import ua.edu.onu.library.dto.LoanRequest;
 import ua.edu.onu.library.exception.UnauthorizedException;
-import ua.edu.onu.library.service.LibraryService;
+import ua.edu.onu.library.service.LoanService;
 
 @RestController
-@RequestMapping("/api/v1")
-public class LibraryController {
+@RequestMapping("/api/v1/loans")
+public class LoanController {
 
-    private final LibraryService libraryService;
+    private final LoanService loanService;
 
-    public LibraryController(LibraryService libraryService) {
-        this.libraryService = libraryService;
+    public LoanController(LoanService loanService) {
+        this.loanService = loanService;
     }
 
-    // 1. Отримання книги — якщо немає, кидаємо Exception (буде 404)
-    @GetMapping("/books/{id}")
-    public Book getBook(@PathVariable Long id, @RequestHeader("X-Auth-Token") String token) {
-        validateAuth(token);
-        return libraryService.findBookById(id);
-    }
-
-    // 2. Створення позики — повертаємо 201 Created
-    @PostMapping("/loans")
+    @PostMapping
     public ResponseEntity<Loan> createLoan(@RequestBody LoanRequest request, @RequestHeader("X-Auth-Token") String token) {
-        validateAuth(token);
-        Loan loan = libraryService.createLoan(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(loan);
-    }
-
-    // 3. Видалення книги — повертаємо 204 No Content
-    @DeleteMapping("/books/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteBook(@PathVariable Long id, @RequestHeader("X-Auth-Token") String token) {
-        validateAuth(token);
-        libraryService.deleteBook(id);
-    }
-
-    private void validateAuth(String token) {
         if (token == null || !token.equals("test-token")) {
             throw new UnauthorizedException("Missing or invalid X-Auth-Token");
         }
+        Loan loan = loanService.createLoan(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(loan); // 201 Created
     }
 }
 ```
@@ -286,134 +310,104 @@ public class BookNotFoundException extends RuntimeException {
 }
 ```
 
-**Тепер реалізуйте заглушку сервісу у файлі src/main/java/ua/edu/onu/library/service/LibraryService.java:**
+**Тепер реалізуйте сервіси та бізнес-логіку:**
 
+**Файл: src/main/java/ua/edu/onu/library/service/LoanFineCalculator.java**
+```java
+package ua.edu.onu.library.service;
+
+import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+@Component
+public class LoanFineCalculator {
+    private static final BigDecimal DAILY_FINE = new BigDecimal("2.50");
+    private static final int FREE_GRACE_DAYS = 3;
+
+    public BigDecimal calculate(LocalDate dueDate, LocalDate returnDate) {
+        long daysLate = ChronoUnit.DAYS.between(dueDate, returnDate);
+        if (daysLate <= FREE_GRACE_DAYS) return BigDecimal.ZERO;
+        return DAILY_FINE.multiply(BigDecimal.valueOf(daysLate - FREE_GRACE_DAYS));
+    }
+}
+```
+
+**Файл: src/main/java/ua/edu/onu/library/service/LoanService.java**
 ```java
 package ua.edu.onu.library.service;
 
 import org.springframework.stereotype.Service;
-import ua.edu.onu.library.dto.Book;
 import ua.edu.onu.library.dto.Loan;
 import ua.edu.onu.library.dto.LoanRequest;
-import ua.edu.onu.library.exception.BookNotFoundException;
 import java.time.LocalDate;
 
 @Service
-public class LibraryService {
-    public Book findBookById(Long id) {
-        if (id == 999) throw new BookNotFoundException("Book with id 999 not found");
-        return new Book(id, "Clean Code", "978-0132350884", LocalDate.now());
+public class LoanService {
+    private final LoanFineCalculator fineCalculator;
+
+    public LoanService(LoanFineCalculator fineCalculator) {
+        this.fineCalculator = fineCalculator;
     }
 
     public Loan createLoan(LoanRequest request) {
         return new Loan(1L, request.bookId(), request.readerId(), LocalDate.now().plusDays(14));
     }
-
-    public void deleteBook(Long id) {
-        // Логіка видалення
-    }
 }
 ```
+
+**В `BookService` додайте методи `findBookById(Long id)` та `deleteBook(Long id)`.** 
+(Їх повна реалізація In-Memory буде залишена вам для самостійної практики, але пам'ятайте, що `findBookById` має кидати `BookNotFoundException`, якщо книгу не знайдено).
 
 
 ---
 
 ---
 
-## Частина 4: Глобальна обробка помилок (RestControllerAdvice) (15 хв)
+## Частина 4: Розширення `GlobalExceptionHandler` (15 хв)
 
-Пам'ятаєте таблицю з **Частини 1**, де Legacy-система повертала `500` на відсутнє поле або `200` на неавторизований запит? Саме в цьому розділі ми виправимо ці архітектурні помилки. Механізм `@RestControllerAdvice` дозволяє нам централізовано перетворювати будь-яку виняткову ситуацію на коректний HTTP-статус.
+> [!NOTE]
+> У **P05** ви вже створили `ApiError` DTO та `GlobalExceptionHandler` з обробкою `IllegalArgumentException`. У цьому практикумі ми **розширюємо** вже існуючий клас новими типами виключень — не пишемо заново.
 
-### 4.1: Контракт помилки (ApiError)
+### 4.1: Додаємо нові `@ExceptionHandler` до існуючого `GlobalExceptionHandler`
 
-Для кожного запиту, що завершився невдачею, клієнт повинен отримати об'єкт із чітко визначеними полями. Ми використовуємо `record`, щоб гарантувати незмінність даних та спростити код.
+Відкрийте ваш `GlobalExceptionHandler` (з P05) і додайте обробники для нових ситуацій, які виникають у бібліотечному API:
 
-**Створіть файл src/main/java/ua/edu/onu/library/dto/ApiError.java:**
+**Файл: GlobalExceptionHandler.java** — додайте методи до вже існуючого класу:
 
 ```java
-package ua.edu.onu.library.dto;
+// Обробка відсутності ресурсу (404) — для BookNotFoundException
+@ExceptionHandler(BookNotFoundException.class)
+public ResponseEntity<ApiError> handleNotFound(
+        BookNotFoundException ex, HttpServletRequest request) {
+    return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+}
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import org.springframework.http.HttpStatus;
-import java.time.Instant;
+// Обробка відсутності авторизації (401)
+@ExceptionHandler(UnauthorizedException.class)
+public ResponseEntity<ApiError> handleUnauthorized(
+        UnauthorizedException ex, HttpServletRequest request) {
+    return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+}
 
-public record ApiError(
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    Instant timestamp,
-    int status,
-    String error,
-    String message,
-    String path
-) {
-    public static ApiError of(HttpStatus status, String message, String path) {
-        return new ApiError(
-            Instant.now(),
-            status.value(),
-            status.getReasonPhrase(),
-            message,
-            path
-        );
-    }
+// Обробка відсутніх обов'язкових заголовків (400)
+@ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+public ResponseEntity<ApiError> handleMissingHeader(
+        org.springframework.web.bind.MissingRequestHeaderException ex, HttpServletRequest request) {
+    return buildResponse(HttpStatus.BAD_REQUEST, "Контракт порушено: " + ex.getMessage(), request.getRequestURI());
+}
+
+private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, String path) {
+    ApiError error = ApiError.of(status.value(), status.getReasonPhrase(), message);
+    return new ResponseEntity<>(error, status);
 }
 ```
 
-### 4.2: Центр управління виключеннями
+> [!TIP]
+> Зверніть увагу: `HttpServletRequest` ін'єктується Spring у параметр методу автоматично — так ми знаємо URL, на якому виникла помилка, і можемо включити його в `ApiError`.
 
-Клас із анотацією `@RestControllerAdvice` дозволяє перехоплювати виключення по всьому проєкту в одному місці та повертати коректні статуси.
-
-**Створіть файл src/main/java/ua/edu/onu/library/controller/GlobalExceptionHandler.java:**
-
-```java
-package ua.edu.onu.library.controller;
-
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ua.edu.onu.library.dto.ApiError;
-import ua.edu.onu.library.exception.BookNotFoundException;
-import ua.edu.onu.library.exception.UnauthorizedException;
-
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    // 1. Виправляємо Legacy: замість 500 на невалідні дані повертаємо 400 Bad Request
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleBadRequest(
-            IllegalArgumentException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
-    }
-
-    // 2. Виправляємо Legacy: повертаємо чітке 401 Unauthorized
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiError> handleUnauthorized(
-            UnauthorizedException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
-    }
-
-    // 3. Обробка відсутності ресурсу (404)
-    @ExceptionHandler(BookNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(
-            BookNotFoundException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
-    }
-
-    // 4. Обробка відсутності обов'язкових заголовків (400)
-    @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
-    public ResponseEntity<ApiError> handleMissingHeader(
-            org.springframework.web.bind.MissingRequestHeaderException ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "Контракт порушено: " + ex.getMessage(), request);
-    }
-
-    private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, HttpServletRequest request) {
-        ApiError error = ApiError.of(status, message, request.getRequestURI());
-        return new ResponseEntity<>(error, status);
-    }
-}
-```
-
-**Порада:** Виправлення помилки "500 на відсутнє поле" робиться саме тут через перехоплення `MethodArgumentNotValidException` або `IllegalArgumentException`.
+**Також додайте `jakarta.servlet.http.HttpServletRequest` до імпортів та оновіть існуючий `handleBadInput` щоб він теж приймав `HttpServletRequest` і використовував `buildResponse`.**
 
 ---
 
@@ -522,7 +516,7 @@ Swagger — це не просто документація, а жива піс�
 > *   **Статичні імпорти (`import static`)** — необхідні для використання таких методів як `when()`, `get()`, `status()`, `jsonPath()`. Вони роблять код тесту читабельним (Fluent API).
 
 
-**Створіть файл src/test/java/ua/edu/onu/library/controller/LibraryControllerTest.java:**
+**Створіть файл src/test/java/ua/edu/onu/library/controller/BookControllerTest.java:**
 
 ```java
 package ua.edu.onu.library.controller;
@@ -534,7 +528,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import ua.edu.onu.library.dto.Book;
 import ua.edu.onu.library.exception.BookNotFoundException;
-import ua.edu.onu.library.service.LibraryService;
+import ua.edu.onu.library.service.BookService;
 import java.time.LocalDate;
 
 import static org.mockito.Mockito.when;
@@ -542,21 +536,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(LibraryController.class)
-class LibraryControllerTest {
+@WebMvcTest(BookController.class)
+class BookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private LibraryService libraryService;
+    private BookService bookService;
 
     @Test
     void getBook_WhenExists_ReturnsOk() throws Exception {
         // Given
         Long bookId = 1L;
         Book book = new Book(bookId, "Clean Code", "978-0132350884", LocalDate.now());
-        when(libraryService.findBookById(bookId)).thenReturn(book);
+        when(bookService.findBookById(bookId)).thenReturn(book);
 
         // When & Then
         mockMvc.perform(get("/api/v1/books/{id}", bookId)
@@ -570,7 +564,7 @@ class LibraryControllerTest {
     void getBook_WhenNotFound_Returns404() throws Exception {
         // 1. Given: сервіс кидає нашу кастомну помилку
         Long bookId = 999L;
-        when(libraryService.findBookById(bookId))
+        when(bookService.findBookById(bookId))
             .thenThrow(new BookNotFoundException("Book not found"));
 
         // 2. When & Then: перевіряємо, що GlobalExceptionHandler правильно мапить її на 404, а не 500
@@ -583,7 +577,6 @@ class LibraryControllerTest {
 
     @Test
     void getBook_WithoutHeader_Returns400() throws Exception {
-        // Перевіряємо, що відсутність обов'язкового заголовка — це помилка клієнта (400)
         mockMvc.perform(get("/api/v1/books/1"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
@@ -591,7 +584,6 @@ class LibraryControllerTest {
 
     @Test
     void getBook_WithInvalidHeader_Returns401() throws Exception {
-        // Перевіряємо, що неправильний токен — це помилка авторизації (401)
         mockMvc.perform(get("/api/v1/books/1")
                 .header("X-Auth-Token", "wrong-token"))
                 .andExpect(status().isUnauthorized())
@@ -602,7 +594,7 @@ class LibraryControllerTest {
 
 ### 6.2: Що тут відбувається?
 
-1.  **`@WebMvcTest(LibraryController.class)`:** Spring завантажує лише веб-контекст. Це працює набагато швидше, ніж повний запуск додатку.
+1.  **`@WebMvcTest(BookController.class)`:** Spring завантажує лише веб-контекст. Це працює набагато швидше, ніж повний запуск додатку.
 2.  **`MockMvc`:** Основний інструмент для надсилання HTTP-запитів до контролера в тестах.
 3.  **`@MockBean`:** Ми створюємо "фейковий" об'єкт сервісу, щоб протестувати лише логіку контролера (мапінг статусів, заголовки).
 4.  **`jsonPath`:** Дозволяє перевіряти структуру JSON-відповіді (наш `ApiError` контракт).
@@ -651,6 +643,6 @@ class LibraryControllerTest {
 
 ---
 
-**[⬅️ Лекція 7: API Design](07_api_design.md)** | **[Лекція 8: Test Cases ➡️](08_test_cases.md)**
+**[⬅️ Лекція 7: API Design](../../07_api_design.md)** | **[Лекція 8: Test Cases ➡️](../../07_test_cases.md)**
 
-**[⬅️ Повернутися до головного меню курсу](index.md)**
+**[⬅️ Повернутися до головного меню курсу](../../index.md)**

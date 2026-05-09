@@ -369,6 +369,6 @@ AAA (Arrange-Act-Assert) — це стандарт структури тесту
 
 ---
 
-**[⬅️ P07: API Practice](p07_api_practice.md)** | **[Лекція 9: Docker ➡️](09_docker.md)**
+**[⬅️ P08: API Practice](workshop/engineering/p08_api_practice.md)** | **[Лекція 9: Docker ➡️](09_docker.md)**
 
 **[⬅️ Повернутися до головного меню курсу](index.md)**

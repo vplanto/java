@@ -1,16 +1,16 @@
-# Практикум P08: Testing на практиці. Пишемо тести, що ловлять баги
+# Практикум P09: Testing на практиці. Пишемо тести, що ловлять баги
 
 **Аудиторія:** 2-й курс (Junior Strong)
 **Тип:** Hands-on Lab
-**Попередні вимоги:** [Лекція 8: Test Cases & Coverage](08_test_cases.md), Spring Boot сервіс (P03–P05)
+**Попередні вимоги:** [Лекція 8: Test Cases & Coverage](../../08_test_cases.md), Spring Boot сервіс (P03–P05)
 
-> **English version:** [English](en/p08_testing_practice.md)
+> **English version:** [English](en/p09_testing_practice.md)
 
 ---
 
 ## Мета заняття
 
-Написати повноцінну тест-піраміду для Library-сервісу: Unit-тести для бізнес-логіки, Integration-тест для репозиторію та Controller-тест для HTTP-шару.
+Написати повноцінну тест-піраміду для `library-service`: Unit-тести для бізнес-логіки (`LoanFineCalculator`, `BookService`), та Controller-тест для HTTP-шару (`BookController`) через `@WebMvcTest`.
 
 ---
 
@@ -171,54 +171,68 @@ class LoanServiceTest {
 
 ---
 
-## Частина 2: Integration-тест репозиторію (20 хв)
+## Частина 2: Unit-тест `BookService` (20 хв)
 
-### Вправа 2.1: @DataJpaTest
+### Вправа 2.1: Тестування in-memory сервісу
 
-Напишіть integration-тест для `LoanRepository.findOverdueLoans(LocalDate date)`:
+`BookService` зберігає книги у `List<BookResponse>` та `AtomicLong` (P04). Тут немає БД — тому тест простий і швидкий: просто `new BookService(...)`, без Spring.
 
-```java
-public interface LoanRepository extends JpaRepository<Loan, Long> {
-
-    @Query("SELECT l FROM Loan l WHERE l.dueDate < :date AND l.status = 'ACTIVE'")
-    List<Loan> findOverdueLoans(@Param("date") LocalDate date);
-}
-```
-
-<details markdown="1">
-<summary>Тест з @DataJpaTest</summary>
+> [!NOTE]
+> Ми не використовуємо `@DataJpaTest` — JPA у цьому проєкті відсутній. Тестуємо бізнес-логіку сервісу напряму.
 
 ```java
-@DataJpaTest
-class LoanRepositoryTest {
+class BookServiceTest {
 
-    @Autowired LoanRepository loanRepository;
-    @Autowired BookRepository bookRepository;
+    private BookService bookService;
+
+    @BeforeEach
+    void setUp() {
+        // Створюємо сервіс вручну з тестовими параметрами конфігурації
+        bookService = new BookService("Test Library", 3);
+    }
 
     @Test
-    void should_find_overdue_loans() {
-        // Arrange: вставляємо тестові дані
-        Book book = bookRepository.save(new Book("Clean Code", "978-0132350884"));
+    void findAll_shouldReturnSeedBooks() {
+        List<BookResponse> books = bookService.findAll();
+        assertThat(books).hasSize(2); // seed-дані з конструктора (P04)
+    }
 
-        Loan overdueLoan = new Loan(book, 1L, LocalDate.of(2024, 1, 1), LoanStatus.ACTIVE);
-        Loan activeLoan  = new Loan(book, 2L, LocalDate.of(2024, 12, 31), LoanStatus.ACTIVE);
-        Loan returnedLoan = new Loan(book, 3L, LocalDate.of(2024, 1, 1), LoanStatus.RETURNED);
+    @Test
+    void addBook_shouldReturnBookWithGeneratedId() {
+        BookResponse book = bookService.addBook("Clean Code", "Robert C. Martin");
+        assertThat(book.id()).isNotNull();
+        assertThat(book.title()).isEqualTo("Clean Code");
+    }
 
-        loanRepository.saveAll(List.of(overdueLoan, activeLoan, returnedLoan));
+    @Test
+    void addBook_whenLimitReached_shouldThrowIllegalArgumentException() {
+        // Ліміт = 3, seed = 2 → одна книга ще влізе
+        bookService.addBook("Extra Book", "Author");
 
-        // Act
-        List<Loan> result = loanRepository.findOverdueLoans(LocalDate.of(2024, 6, 1));
+        // Четверта — має впасти
+        assertThatThrownBy(() -> bookService.addBook("One Too Many", "Author"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("заповнена");
+    }
 
-        // Assert: тільки один — overdueLoan
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getReaderId()).isEqualTo(1L);
+    @Test
+    void addBook_whenTitleIsBlank_shouldThrowIllegalArgumentException() {
+        assertThatThrownBy(() -> bookService.addBook("", "Author"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Title");
+    }
+
+    @Test
+    void findById_whenNotFound_shouldThrowBookNotFoundException() {
+        assertThatThrownBy(() -> bookService.findById(999L))
+            .isInstanceOf(BookNotFoundException.class);
     }
 }
 ```
 
-> `@DataJpaTest` підіймає тільки JPA-шар і H2 (або Testcontainers, якщо налаштовано). Ніяких Spring MVC, контролерів, сервісів — чистий тест репозиторію.
-
-</details>
+> [!TIP]
+> **Чому це краще ніж `@DataJpaTest`?**
+> `@DataJpaTest` підіймає Spring-контекст і H2 — це 3–5 секунд на старт. Тест вище виконується за мілісекунди і не має зовнішніх залежностей. Саме такі тести складають основу **піраміди тестування**.
 
 ---
 
@@ -226,16 +240,21 @@ class LoanRepositoryTest {
 
 ### Вправа 3.1: @WebMvcTest
 
-Протестуйте `BookController.getBook()` без підняття реального сервера:
+Протестуйте `BookController.getAllBooks()` та `BookController.getBook()` без підняття реального сервера:
 
 ```java
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/books")
 public class BookController {
     private final BookService bookService;
 
+    @GetMapping
+    public List<BookResponse> getAllBooks() {
+        return bookService.findAll();
+    }
+
     @GetMapping("/{id}")
-    public BookDto getBook(@PathVariable Long id) {
+    public BookResponse getBook(@PathVariable Long id) {
         return bookService.findById(id);
     }
 }
@@ -249,34 +268,33 @@ public class BookController {
 class BookControllerTest {
 
     @Autowired MockMvc mockMvc;
-    @MockBean BookService bookService;  // MockBean замість Mock — для Spring context
+    @MockBean BookService bookService;
 
     @Test
-    void should_return_book_when_found() throws Exception {
-        given(bookService.findById(42L))
-            .willReturn(new BookDto(42L, "Clean Code", "978-0132350884"));
+    void getAllBooks_shouldReturnList() throws Exception {
+        given(bookService.findAll())
+            .willReturn(List.of(new BookResponse(1L, "Clean Code", "Robert C. Martin")));
 
-        mockMvc.perform(get("/books/42")
+        mockMvc.perform(get("/api/books")
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(42))
-            .andExpect(jsonPath("$.title").value("Clean Code"))
-            .andExpect(jsonPath("$.isbn").value("978-0132350884"));
+            .andExpect(jsonPath("$[0].id").value(1))
+            .andExpect(jsonPath("$[0].title").value("Clean Code"));
     }
 
     @Test
-    void should_return_404_when_book_not_found() throws Exception {
+    void getBook_shouldReturn404_whenNotFound() throws Exception {
         given(bookService.findById(999L))
-            .willThrow(new BookNotFoundException(999L));
+            .willThrow(new BookNotFoundException("Book with id 999 not found"));
 
-        mockMvc.perform(get("/books/999"))
+        mockMvc.perform(get("/api/books/999"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Book with id 999 not found"));
     }
 
     @Test
-    void should_return_400_when_id_is_invalid() throws Exception {
-        mockMvc.perform(get("/books/abc"))
+    void getBook_shouldReturn400_whenIdIsNotANumber() throws Exception {
+        mockMvc.perform(get("/api/books/abc"))
             .andExpect(status().isBadRequest());
     }
 }
@@ -358,9 +376,9 @@ List<Loan> result = loanService.getOverdueLoans(fixedClock);
 `@SpringBootTest` займає 3–10 секунд на ініціалізацію. 50 таких тестів = 4–8 хвилин тільки на старт контексту.
 
 Рішення: використовувати мінімально необхідний slice-тест:
-- `@DataJpaTest` — тільки JPA-шар
 - `@WebMvcTest` — тільки MVC-шар
 - `@MockBean` — мокуємо те, що не тестуємо
+- Для in-memory сервісів — просто `new Service(...)` без жодних анотацій
 
 `@SpringBootTest` залишаємо лише для end-to-end інтеграційних тестів, яких повинно бути мало (верхівка піраміди).
 
@@ -368,6 +386,6 @@ List<Loan> result = loanService.getOverdueLoans(fixedClock);
 
 ---
 
-**[⬅️ Лекція 8: Test Cases](08_test_cases.md)** | **[P09: Docker на практиці ➡️](p09_docker_practice.md)**
+**[⬅️ Лекція 8: Test Cases](../../08_test_cases.md)** | **[P06: Docker на практиці ➡️](p06_docker_practice.md)**
 
-**[⬅️ Повернутися до головного меню курсу](index.md)**
+**[⬅️ Повернутися до головного меню курсу](../../index.md)**

@@ -175,7 +175,7 @@ graph LR
 Ми офіційно визнаємо: у 2026 році писати весь код руками — це неефективно.
 Тому ми переходимо на **Vibe Coding Protocol** — методологію, де AI виконує роль "робочої сили", а ви — роль Архітектора.
 
-**Повний протокол:** [vibe_coding.md](vibe_coding.md)
+**Повний протокол:** [workshop/engineering/vibe_coding.md](workshop/engineering/vibe_coding.md)
 
 ### Нові правила гри
 

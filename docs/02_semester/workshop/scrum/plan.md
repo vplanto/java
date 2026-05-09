@@ -1,6 +1,6 @@
 # План воркшопу: Децентралізована команда (VARTA)
 
-**Зв'язок з теорією:** [Лекція 3: Requirements](../03_requirements.md) | [Воркшоп: Scrum Ceremonies](../workshop_02_agile.md) | [Product Backlog](product_backlog.md)
+**Зв'язок з теорією:** [Лекція 3: Requirements](../../03_requirements.md) | [Воркшоп: Scrum Ceremonies](../workshop_02_agile.md) | [Product Backlog](product_backlog.md)
 **Ціль:** Пройти повний цикл розробки вимог та планування через симуляцію ролей у децентралізованих сквадах.
 
 ---
@@ -77,7 +77,7 @@
 2. **Що робити:** переглянути [Product Backlog](product_backlog.md), для кандидатних US — чернетки тікетів **DR / EC / BAU** ([SME](sme_template.md)), **UF / WF** ([UX](ux_template.md)), питання до PO; за потреби — попередня оцінка в SP (як на [практикумі Scrum](../workshop_02_agile.md)).
 3. **Коли зупинитись:** топ-елементи backlog мають достатньо контексту, щоб на **Sprint Planning** лишилось **обрати одну US на вертикальний зріз**, сформулювати Sprint Goal і розкласти роботу по ролях — без винаходу вимог з нуля в залі.
 
-Теоретичне підкріплення: [Лекція 2, Scrum-церемонії](../02_delivery_methodology.md) (Sprint Planning, Daily, Review, Retro), [Лекція 3, INVEST і готовність Story](../03_requirements.md).
+Теоретичне підкріплення: [Лекція 2, Scrum-церемонії](../../02_delivery_methodology.md) (Sprint Planning, Daily, Review, Retro), [Лекція 3, INVEST і готовність Story](../../03_requirements.md).
 
 ---
 
@@ -162,5 +162,5 @@ graph TD
 
 ---
 
-**[⬅️ Повернутися до Scrum Ceremonies](../workshop_02_agile.md)** | **[⬅️ Повернутися до головного меню курсу](../index.md)**
+**[⬅️ Повернутися до Scrum Ceremonies](../workshop_02_agile.md)** | **[⬅️ Повернутися до головного меню курсу](../../index.md)**
 

@@ -342,7 +342,7 @@ graph LR
 
 **Навіщо:** щоб на **Sprint Planning** зверху backlog був уже **зрозумілий і придатний для відбору**, а не вперше «відкривався» зі списку в залі. Refinement відповідає на питання *«чи ми розуміємо задачу і скільки вона коштує в SP?»*; Planning — на *«що саме беремо в цей спринт і яка Sprint Goal?»*
 
-Практика на курсі (воркшоп VARTA): [Sprint Grooming і Sprint Planning](workshop/plan.md#grooming-and-planning), симуляція церемоній — [практикум Scrum](workshop_02_agile.md).
+Практика на курсі (воркшоп VARTA): [Sprint Grooming і Sprint Planning](workshop/scrum/plan.md#grooming-and-planning), симуляція церемоній — [практикум Scrum](workshop/workshop_02_agile.md).
 
 </details>
 

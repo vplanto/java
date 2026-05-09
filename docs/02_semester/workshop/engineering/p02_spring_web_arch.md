@@ -172,4 +172,4 @@ if (classpath.contains("PostgreSQL-Driver") && !beans.contains("DataSource")) {
 </details>
 ---
 
-**[⬅️ Повернутися до головного меню курсу](index.md)** | **[P03: Zero to Hero ➡️](p03_spring_zero_to_hero.md)**
+**[⬅️ Повернутися до головного меню курсу](../../index.md)** | **[P03: Zero to Hero ➡️](p03_spring_zero_to_hero.md)**

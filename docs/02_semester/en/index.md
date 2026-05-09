@@ -26,7 +26,7 @@
 * **Artifacts:** What does an architect leave behind? (ADR, Impact Analysis, Blueprint).
 
 ### 2. Practice and “battle-tested” engineering
-**[Practice: Workshop “URL Shortener” (Ultimate Edition)](p01_system_design_workshop.md)**
+**[Practice: Workshop “URL Shortener” (Ultimate Edition)](../workshop/workshop_03_system_design.md)**
 *Live Design Session: We design a bit.ly clone with real-world constraints.*
 
 * **Real Numbers:** The “elevator doors” mental model and biological limits (100ms).

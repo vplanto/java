@@ -2,7 +2,6 @@
 
 **Ролі:** Студент (Product Owner & Agentic Developer) → Ментор (System Architect)
 
-> **English version:** [English](en/vibe_coding.md)
 
 ---
 
@@ -38,7 +37,7 @@
 **Ваша задача:**
 1. Описати проблему (Functional Requirements).
 2. Зафіксувати Non-Functional Requirements (Scalability, Security).
-Зв'язок з курсом: [Лекція 3 — Requirements](03_requirements.md), [Лекція 4 — NFRs](04_nfr.md).
+Зв'язок з курсом: [Лекція 3 — Requirements](../../03_requirements.md), [Лекція 4 — NFRs](../../04_nfr.md).
 
 ### Етап 2 — System Design та API Contract
 Перетворюємо ідею на інженерні вимоги.
@@ -48,7 +47,7 @@
 
 **Quality Gate:** Ментор затверджує дизайн до початку кодування.
 
-### Етап 3 — Agentic Implementation (Spring Boot + SPA)
+### Етап 3 — Agentic Implementation (Spring Boot + Swagger)
 Ви йдете в поле з AI. Ваша задача — **змусити AI дотримуватись погодженої архітектури**.
 
 > [!TIP]
@@ -58,14 +57,15 @@
 
 Ви маєте розробити:
 1. **Backend:** Spring Boot API (з DI, DTO та Global Exception Handling).
-2. **Frontend:** Простий SPA (Single Page Application), який взаємодіє з вашим API.
+2. **Swagger UI** доступний за `/swagger-ui.html` — обов'язковий інтерфейс для вашого API.
+3. _(Бонус)_ Простий SPA або Landing Page — необов'язково.
 
 ### Етап 4 — Infrastructure, Docker та Observability
 Готовий код має працювати не лише на вашому комп'ютері.
-1. **Docker:** Запакуйте Backend, Database та Frontend у Docker Compose.
+1. **Docker:** Запакуйте Backend у Docker-контейнер.
 2. **Deployment:** Розгорніть систему в хмарі (наприклад, Render.com чи AWS).
 3. **Observability:** Забезпечте базовий моніторинг (Логи, Health Checks), щоб знати, що система жива.
-Зв'язок з курсом: [P06 — Cloud Deployment](p06_spring_cloud_deployment.md), [P09 — Docker](09_docker.md).
+Зв'язок з курсом: [P07 — Cloud Deployment](p07_spring_cloud_deployment.md), [P06 — Docker](../../09_docker.md).
 
 ### Етап 5 — The Defense (Binary Socratic Gatekeeping)
 Найжорсткіший етап. Ментор діє як агресивний інтерв'юер.
@@ -82,10 +82,10 @@
 
 | Порушення | Чому проблема | Модуль курсу |
 | :--- | :--- | :--- |
-| **Magic Code** | Код, призначення якого ви не можете пояснити. Єдина сутність, що «знає» код — AI. | [Л12 Refactoring](12_refactoring.md) |
+| **Magic Code** | Код, призначення якого ви не можете пояснити. Єдина сутність, що «знає» код — AI. | [Л12 Refactoring](../../12_refactoring.md) |
 | **Hardcode Credentials** | Паролі до БД захардкоджені у файлі `.properties`. | [P05](p05_spring_production_ready.md) |
-| **No Observability / Logs** | Якщо API падає (500 Error), ви не знаєте чому, бо немає логів. | [Л10 Distributed Systems](10_distributed_systems.md) |
-| **God Objects** | Клас або метод на сотні рядків, який AI згенерував монолітом. | [Л12 Refactoring](12_refactoring.md) |
+| **No Observability / Logs** | Якщо API падає (500 Error), ви не знаєте чому, бо немає логів. | [Л10 Distributed Systems](../../10_distributed_systems.md) |
+| **God Objects** | Клас або метод на сотні рядків, який AI згенерував монолітом. | [Л12 Refactoring](../../12_refactoring.md) |
 | **Blind Trust** | Використання `try { } catch (Exception e) {}` без обробки помилок. | [P05](p05_spring_production_ready.md) |
 
 ---
@@ -94,12 +94,12 @@
 
 | Критерій | Що перевіряємо | Definition of Done |
 | :--- | :--- | :--- |
-| **Product Vision** | Чи вирішує додаток заявлену проблему? | Наявність SPA, що демонструє ключовий Use Case. |
-| **System Design** | Архітектура, відсутність спагеті-коду. | Шарова структура (Controller → Service → Repository), використання DTO. |
+| **Product Vision** | Чи вирішує додаток заявлену проблему? | Swagger UI доступний і демонструє ключовий Use Case; SPA — бонус. |
+| **System Design** | Архітектура, відсутність спагеті-коду. | Шарова структура (Controller → Service), використання DTO. |
 | **Infra & Deploy** | Продукт працює ізольовано в середовищі. | Наявність Dockerfile та робоче посилання в хмарі. |
 | **NFRs & Observability** | Надійність та спостережуваність системи. | Логування помилок, валідація даних, обробка виключень. |
 | **AI Ownership** | Студент впевнено захищає кожне рішення. | Проходить Code Audit без виправдань штучним інтелектом. |
 
 ---
 
-**[⬅️ Повернутися до головного меню курсу](index.md)**
+**[⬅️ Повернутися до головного меню курсу](../../index.md)**

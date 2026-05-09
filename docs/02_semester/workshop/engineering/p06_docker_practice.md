@@ -1,17 +1,17 @@
-# Практикум P09: Docker на практиці. Пакуємо і запускаємо сервіс
+# Практикум P06: Docker на практиці. Пакуємо і запускаємо сервіс
 
 **Аудиторія:** 2-й курс (Junior Strong)
 **Тип:** Hands-on Lab
-**Попередні вимоги:** [Лекція 9: Docker](09_docker.md), Spring Boot сервіс (P03–P05)
+**Попередні вимоги:** [Лекція 9: Docker](../../09_docker.md), Spring Boot сервіс (P03–P05)
 
-> **English version:** [English](en/p09_docker_practice.md)
+> **English version:** [English](en/p06_docker_practice.md)
 
 ---
 
 ## Частина 1: Dockerfile для Spring Boot (20 хв)
 
 ### Бізнес-сценарій: "Works on my machine"
-У вас на ноутбуці стоїть Java 21 і база даних на порту 5432. Ви пишете код, віддаєте колезі, а у нього Java 17 і база зайнята іншим проєктом. Результат — сервіс не стартує.
+У вас на ноутбуці стоїть Java 21 і ви пишете код. Ви віддаєте його колезі, а у нього лише Java 17, або на сервері взагалі не встановлена Java. Результат — сервіс не стартує.
 Щоб це вирішити, ми пакуємо наш застосунок разом із його оточенням (JRE) у Docker-образ. Тепер сервіс гарантовано запуститься на будь-якому комп'ютері або сервері.
 
 ### Завдання 1.1: Аналіз поганого Dockerfile (Антипатерни)
@@ -80,13 +80,12 @@ ENTRYPOINT ["java", \
 
 ## Частина 2: Docker Compose (25 хв)
 
-### Бізнес-сценарій: Database persistence
-Наш сервіс не існує у вакуумі. Йому потрібна база даних PostgreSQL. Якби ми використовували звичайний Docker, нам довелося б вручну запускати контейнер з БД, налаштовувати мережу, а потім запускати застосунок. 
-`docker-compose` дозволяє описати всю інфраструктуру проєкту (App + Database) в одному файлі та підняти її однією командою.
+### Бізнес-сценарій: Infrastructure as Code
+Навіть якщо наш сервіс працює in-memory і не має бази даних, запускати його через `docker run -p 8080:8080 -e APP_LIBRARY_MAX_BOOKS=50 -d library-app` дуже незручно, особливо коли параметрів стає багато. 
+`docker-compose` дозволяє описати всю інфраструктуру проєкту (порти, змінні середовища, ліміти пам'яті) в одному файлі та підняти її однією командою. Це підхід **"Infrastructure as Code"**.
 
 ### Завдання 2.1: Створення docker-compose.yml
 Напишіть `docker-compose.yml` у корені проєкту.
-Ми додаємо правильний `depends_on` (щоб аплікація чекала, поки БД буде готова приймати запити) та `volumes` (щоб дані не зникали при перезапуску контейнера).
 
 **Файл: docker-compose.yml**
 ```yaml
@@ -98,13 +97,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/library
-      SPRING_DATASOURCE_USERNAME: library_user
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-    depends_on:
-      db:
-        condition: service_healthy
+      APP_LIBRARY_MAX_BOOKS: ${MAX_BOOKS}
     restart: unless-stopped
     # Resource limits
     deploy:
@@ -112,43 +105,23 @@ services:
         limits:
           memory: 512m
           cpus: '0.5'
-
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: library
-      POSTGRES_USER: library_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql  # початкова схема
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U library_user -d library"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
 ```
 
-### Завдання 2.2: Секрети та змінні середовища
-У `docker-compose.yml` ми використовували `${DB_PASSWORD}`. Де його взяти?
+### Завдання 2.2: Змінні середовища
+У `docker-compose.yml` ми використовували `${MAX_BOOKS}`. Де його взяти?
 
 **Файл: .env (НІКОЛИ НЕ ПУШИТИ В GIT!)**
 ```properties
-DB_PASSWORD=supersecretpassword
+MAX_BOOKS=150
 ```
 
 **Файл: .env.example (Для Git, як документація)**
 ```properties
-DB_PASSWORD=your-database-password-here
+MAX_BOOKS=50
 ```
 
 > [!CAUTION]
-> **Секрети у Git:** Якщо ви випадково закомітите `.env` з реальними паролями на GitHub — це інцидент безпеки. Використовуйте `.gitignore`.
+> **Секрети у Git:** Якщо ви колись додасте в `.env` реальні паролі або токени доступу, і випадково закомітите цей файл на GitHub — це інцидент безпеки. Використовуйте `.gitignore`.
 
 ### Завдання 2.3: Корисні команди для відлагодження
 Запустіть середовище (`docker compose up -d`) та виконайте ці команди. Вони вам знадобляться на щоденній основі:
@@ -161,8 +134,8 @@ docker compose ps
 # Стрімінг логів з сервісу app (Ctrl+C для виходу)
 docker compose logs app --follow
 
-# Зайти в контейнер db і показати всі таблиці в БД library
-docker compose exec db psql -U library_user -d library -c "\dt"
+# Зайти в контейнер app і переглянути його файлову систему
+docker compose exec app sh
 
 # Live-моніторинг CPU/RAM/Network по всіх контейнерах
 docker stats
@@ -176,9 +149,9 @@ docker stats
 Ось реальні ситуації з якими ви зіткнетесь у Production. Як їх вирішити?
 
 > [!WARNING]
-> **Сценарій A: App стартує, але падає з `Connection refused to db:5432`**
-> **Причина:** База даних ще не готова приймати з'єднання, але Spring Boot вже намагається виконати міграції.
-> **Рішення:** Перевірити логи бази (`docker compose logs db`) та переконатись, що `depends_on` має `condition: service_healthy`, а healthcheck бази налаштований правильно.
+> **Сценарій A: App стартує і падає з помилкою `OOMKilled`**
+> **Причина:** Контейнер перевищив ліміт пам'яті, вказаний у docker-compose (наприклад, `512m`).
+> **Рішення:** Перевірити налаштування `MAX_RAM_PERCENTAGE` у `Dockerfile` (чи воно взагалі є) та збільшити ліміт пам'яті у Compose файлі.
 
 > [!WARNING]
 > **Сценарій B: App працює в Docker, але з хоста `:8080` дає `Connection refused`**
@@ -186,7 +159,7 @@ docker stats
 > **Рішення:** Перевірити мапінг портів `ports: - "8080:8080"` у Compose. Зайти в контейнер (`docker compose exec app /bin/sh -c "ss -tlnp"`) і перевірити, чи сервер слухає `0.0.0.0`.
 
 > [!WARNING]
-> **Сценарій C: Після оновлення `.env` app все одно використовує старий пароль**
+> **Сценарій C: Після оновлення `.env` app все одно використовує старий ліміт книг**
 > **Причина:** Docker Compose кешує контейнери, якщо конфігурація YAML не змінилась.
 > **Рішення:** Перезапустити явно: `docker compose down` та `docker compose up -d` (або `docker compose up -d --force-recreate`).
 
@@ -255,19 +228,19 @@ target/
 
 </details>
 
-3. **Secrets:** Ваш колега захотів передати DB_PASSWORD прямо у Dockerfile: `ENV DB_PASSWORD=secret123`. Яка проблема і як правильно?
+3. **Secrets:** Ваш колега захотів передати API_TOKEN прямо у Dockerfile: `ENV API_TOKEN=secret123`. Яка проблема і як правильно?
 
 <details markdown="1">
 <summary>Відповідь</summary>
 
-Проблема: пароль назавжди вбудований у image. Видно через `docker inspect`. Залишається в history шарів навіть після `RUN unset DB_PASSWORD`. Image з паролем можна випадково запушити в публічний Registry.
+Проблема: токен назавжди вбудований у image. Видно через `docker inspect`. Залишається в history шарів навіть після `RUN unset API_TOKEN`. Image з токеном можна випадково запушити в публічний Registry.
 
-Правильно: передавати тільки при `docker run -e` або через `.env` файл в Compose. У production — через Kubernetes Secrets, AWS Secrets Manager або Docker Swarm Secrets. У Dockerfile не повинно бути жодних значень — тільки `ENV DB_PASSWORD=""` як документація.
+Правильно: передавати тільки при `docker run -e` або через `.env` файл в Compose. У production — через Kubernetes Secrets, AWS Secrets Manager або хмарні Environment Variables (як у Render.com). У Dockerfile не повинно бути жодних значень — тільки `ENV API_TOKEN=""` як документація.
 
 </details>
 
 ---
 
-**[⬅️ Лекція 9: Docker](09_docker.md)** | **[P07: API Practice ➡️](p07_api_practice.md)**
+**[⬅️ Лекція 9: Docker](../../09_docker.md)** | **[P08: API Practice ➡️](p08_api_practice.md)**
 
-**[⬅️ Повернутися до головного меню курсу](index.md)**
+**[⬅️ Повернутися до головного меню курсу](../../index.md)**
