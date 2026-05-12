@@ -121,6 +121,8 @@ public class BookService {
 > private BookService bookService; 
 > ```
 > Не робіть так! Це унеможливлює Unit-тестування без підняття всього фреймворку.
+> 
+> *(Сноска: `@Autowired` — це анотація, яка вказує Spring автоматично знайти та підставити потрібний об'єкт (бін) у це поле. Це і є механізм Dependency Injection).*
 
 ### Завдання 2.1: Оновлення `BookController` — Constructor Injection
 
@@ -202,27 +204,108 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 ---
 
-## Частина 4: Завдання «На захист» (Challenge) (15 хв)
+## Частина 4: Розбір коду — Пошук за автором (15 хв)
 
-### Завдання: «Пошук за автором»
-Самостійно реалізуйте логіку пошуку книг:
+### Бізнес-сценарій
+Давайте розглянемо, як правильно реалізувати пошук книг за автором, не порушуючи архітектурних принципів. Де має знаходитись логіка фільтрації?
 
-1. Додайте в `BookService` метод `findByAuthor(String author)`, який повертає книги конкретного автора (case-insensitive фільтрація).
-2. Додайте валідацію: якщо `author` — порожній рядок, кидайте `IllegalArgumentException("Author must not be blank")`.
-3. Додайте відповідний GET-ендпоінт у контролер: `GET /api/books?author=Martin`.
-4. Продемонструйте результат через браузер або Postman.
+### Крок 1: Логіка в `BookService`
+Алгоритм пошуку та валідація — це бізнес-логіка, тому вона розміщується виключно в Сервісі:
+
+```java
+    public List<BookResponse> findByAuthor(String author) {
+        if (author == null || author.isBlank()) {
+            throw new IllegalArgumentException("Author must not be blank");
+        }
+        
+        return books.stream()
+                .filter(b -> b.author().equalsIgnoreCase(author))
+                .toList();
+    }
+```
+
+### Крок 2: Ендпоінт у `BookController`
+Контролер лише приймає HTTP-запит з параметром (`@RequestParam`) і делегує виконання сервісу:
+
+```java
+    // Приклад запиту: GET /api/books/search?author=Martin
+    @GetMapping("/search")
+    public List<BookResponse> searchBooks(@RequestParam String author) {
+        return bookService.findByAuthor(author);
+    }
+```
 
 > [!NOTE]
-> **Питання для захисту:**
-> Якщо я зміню логіку фільтрації (наприклад, ігнорувати регістр → шукати по підрядку), скільки файлів у проєкті вам доведеться редагувати?
+> **Архітектурне питання:**
+> Якщо ми вирішимо змінити логіку фільтрації (наприклад, шукати не за точним співпадінням, а за частковим збігом — підрядком), скільки файлів нам доведеться редагувати?
 
 <details markdown="1">
 <summary>Відповідь</summary>
 
 **Один.** Тільки `BookService`.
-Контролер (API Layer) не знає про алгоритм пошуку, він лише транслює запит. Це і є «Separation of Concerns».
+Контролер (API Layer) нічого не знає про деталі алгоритму пошуку, він лише передає дані. Це яскравий приклад принципу **Separation of Concerns** (Розділення відповідальності).
 
 </details>
+
+---
+
+## Частина 5: Оновлення автотестів для перевірки POST (10 хв)
+
+### Бізнес-сценарій
+Новий функціонал (додавання книг) має бути покритий тестами. Необхідно переконатися, що API коректно обробляє `POST` запити та повертає правильні статус-коди.
+
+### Розбір коду: Написання тесту для POST /api/books
+
+Оскільки ми додали новий функціонал, необхідно перевірити його працездатність. Ось приклад того, як можна протестувати створення книги за допомогою `MockMvc`:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+class BookControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void shouldCreateNewBook() throws Exception {
+        // Формуємо тіло запиту (JSON)
+        String newBookJson = """
+                {
+                    "title": "Spring in Action",
+                    "author": "Craig Walls"
+                }
+                """;
+
+        // Виконуємо POST-запит та перевіряємо результат
+        mockMvc.perform(post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(newBookJson))
+                .andExpect(status().isCreated())          // Перевіряємо статус 201 Created
+                .andExpect(jsonPath("$.id").exists())     // Перевіряємо, що сервер згенерував ID
+                .andExpect(jsonPath("$.title").value("Spring in Action"));
+    }
+}
+```
+
+> [!TIP]
+> **Тестування через термінал (cURL)**
+> Якщо у вас не встановлено Postman або Insomnia, ви можете перевірити створення книги прямо з терміналу:
+> ```bash
+> curl -X POST http://localhost:8080/api/books \
+>      -H "Content-Type: application/json" \
+>      -d '{"title": "Spring in Action", "author": "Craig Walls"}'
+> ```
 
 ---
 

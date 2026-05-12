@@ -17,9 +17,9 @@
 <details markdown="1">
 <summary>Відповіді (Самоперевірка)</summary>
 
-1.  **Від 10 до 40 хвилин.** Це називається "Downtime" або "Release Cycle". Зміна конфігурації має займати секунди (перезапуск процесу), а не хвилини (перезбірка).
-2.  **Виною.** `400` — винен клієнт (надіслав криві дані). Він має виправити запит. `500` — винен сервер (впала база, NPE). Клієнт нічого не може зробити, тільки чекати.
-3.  **Ні.** Це витік секретів. У Git можна зберігати лише структуру конфігу або дефолтні значення для Dev-середовища. Паролі передаються через змінні оточення (Environment Variables) під час запуску.
+1.  **Довго (хвилини або навіть години).** Повний цикл збірки та деплою є ресурсомістким. Саме тому бізнес-параметри (наприклад, курс валют) не можна "хардкодити" в коді — їх треба виносити в конфігурацію, щоб змінювати миттєво без перезбірки всього проєкту.
+2.  **Джерелом помилки (тим, хто винен).** `400` означає, що клієнт надіслав некоректні дані, і саме він має виправити запит. `500` означає, що проблема виникла на боці сервера (наприклад, необроблений виняток), і клієнт може лише зачекати, поки розробники це полагодять.
+3.  **Абсолютно ні.** Це прямий шлях до витоку секретів (Credential Leak), оскільки історія Git зберігається назавжди і може бути скомпрометована. Бойові паролі повинні передаватися безпечно, наприклад, через змінні оточення (Environment Variables) під час запуску програми.
 
 </details>
 
@@ -38,6 +38,11 @@
 > 3. Зупинити сервер → залити нову версію → запустити сервер.
 > Параметри, що змінюються, повинні бути ззовні коду.
 
+> [!TIP]
+> **Довідка: Що таке 12-Factor App?**
+> Це набір з 12 правил (методологія) для створення надійних сучасних веб-застосунків (Cloud-Native). Її розробили інженери платформи **Heroku** — піонери хмарного хостингу (PaaS), які відомі тим, що першими у світі зробили деплой застосунків магічно простим за допомогою однієї команди (`git push heroku master`).
+> Одне з найголовніших правил — **Фактор 3: Конфігурація (Config)**. Воно стверджує: *«Зберігайте конфігурацію у середовищі виконання»*. Суть у тому, що код (ваші `*.java` файли) має залишатися незмінним для всіх середовищ, а всі параметри (назви баз даних, ліміти, ключі доступу) повинні завантажуватись динамічно під час запуску.
+
 ### Завдання 1.1: Винесення конфігурації
 Spring Boot дозволяє винести налаштування у зовнішні файли або змінні середовища.
 
@@ -51,26 +56,45 @@ app.library.max-books=100
 ### Завдання 1.2: Впровадження конфігурації у Service
 Модифікуйте `BookService`. Використовуйте анотацію `@Value`, щоб Spring "впровадив" значення з файлу.
 
-**Файл: src/main/java/ua/edu/libraryservice/service/BookService.java** — додайте поля:
+**Файл: src/main/java/ua/edu/libraryservice/service/BookService.java** — оновіть весь файл:
 ```java
+package ua.edu.libraryservice.service;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import ua.edu.libraryservice.dto.BookResponse;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class BookService {
 
     private final String libraryName;
     private final int maxBooks;
-    // ... існуючий List<BookResponse> books та AtomicLong ...
+    
+    private final List<BookResponse> books = new ArrayList<>();
+    private final AtomicLong idCounter = new AtomicLong(1);
 
+    // Spring автоматично підставить значення з application.properties
     public BookService(
             @Value("${app.library.name}") String libraryName,
             @Value("${app.library.max-books}") int maxBooks) {
         this.libraryName = libraryName;
         this.maxBooks = maxBooks;
-        // seed дані з P04
+        
+        // Початкові дані (seed)
+        books.add(new BookResponse(idCounter.getAndIncrement(), "Clean Code", "Robert C. Martin"));
+        books.add(new BookResponse(idCounter.getAndIncrement(), "The Pragmatic Programmer", "David Thomas"));
+    }
+
+    public List<BookResponse> findAll() {
+        return List.copyOf(books);
     }
 
     public BookResponse addBook(String title, String author) {
+        // Використовуємо конфігураційні параметри
         if (books.size() >= maxBooks) {
             throw new IllegalArgumentException(
                 "Бібліотека '" + libraryName + "' заповнена (ліміт: " + maxBooks + ")");
@@ -78,6 +102,15 @@ public class BookService {
         BookResponse book = new BookResponse(idCounter.getAndIncrement(), title, author);
         books.add(book);
         return book;
+    }
+
+    public List<BookResponse> findByAuthor(String author) {
+        if (author == null || author.isBlank()) {
+            throw new IllegalArgumentException("Author must not be blank");
+        }
+        return books.stream()
+                .filter(b -> b.author().equalsIgnoreCase(author))
+                .toList();
     }
 }
 ```
@@ -137,7 +170,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ua.edu.libraryservice.dto.ApiError;
 
-@RestControllerAdvice // Ловить помилки з УСІХ контролерів (AOP)
+@RestControllerAdvice // Глобальний "перехоплювач" помилок для всіх контролерів
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -150,7 +183,8 @@ public class GlobalExceptionHandler {
 ```
 
 > [!TIP]
-> **ApiError vs Map:** Ми свідомо використовуємо `record ApiError`, а не `Map.of("error", ...)`. Типізований DTO гарантує стабільний контракт: фронтенд-розробник завжди знає, що отримає поля `timestamp`, `status`, `error`, `message`. `Map` цього не гарантує.
+> **Чому ми створили `ApiError`?**
+> Ми свідомо використовуємо типізований об'єкт `record ApiError` (DTO) для обробки помилок. Це створює надійний контракт (API Contract): фронтенд-розробники завжди точно знають, що у разі будь-якої помилки вони гарантовано отримають JSON з визначеними полями `timestamp`, `status`, `error` та `message`.
 
 ### Завдання 2.3: Оновлення `BookService`
 Сервіс вже кидає `IllegalArgumentException` при переповненні (Завдання 1.2). Переконайтесь, що запит `POST /api/books` з порожнім `title` також повертає `400`, а не `500`:
@@ -166,18 +200,76 @@ public BookResponse addBook(String title, String author) {
 
 ---
 
-## Частина 3: Завдання «На захист» (Challenge) (15 хв)
+## Частина 3: Розбір коду — Кастомне виключення (15 хв)
 
-### Завдання: Кастомне виключення `BookNotFoundException`
+### Бізнес-сценарій
+Що робити, якщо клієнт запитує книгу за ID, якого не існує? Замість того, щоб повертати `500 Internal Server Error` або порожню відповідь, наш API має повернути чіткий статус `404 Not Found` та зрозумілу помилку.
+Давайте розберемо, як це реалізувати за допомогою кастомного виключення (Custom Exception) та `GlobalExceptionHandler`.
 
-1. Створіть клас `BookNotFoundException extends RuntimeException` у пакеті `exception`.
-2. Додайте в `BookService` метод `findById(Long id)`, який кидає `BookNotFoundException`, якщо книга не знайдена.
-3. Додайте обробник цього виключення у `GlobalExceptionHandler` — він має повертати `404 Not Found` з `ApiError`.
-4. Додайте ендпоінт `GET /api/books/{id}` у `BookController`.
+### Крок 1: Створення кастомного виключення
+Створимо власне виключення, яке буде чітко сигналізувати про відсутність книги.
+
+**Файл: src/main/java/ua/edu/libraryservice/exception/BookNotFoundException.java**
+```java
+package ua.edu.libraryservice.exception;
+
+public class BookNotFoundException extends RuntimeException {
+    public BookNotFoundException(String message) {
+        super(message);
+    }
+}
+```
+
+### Крок 2: Логіка пошуку в `BookService`
+Додамо метод `findById`, який шукає книгу. Якщо її немає — навмисно кидаємо наше нове виключення:
+
+```java
+    // Метод у BookService.java
+    public BookResponse findById(Long id) {
+        return books.stream()
+                .filter(b -> b.id().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new BookNotFoundException("Книгу з ID " + id + " не знайдено"));
+    }
+```
+
+### Крок 3: Обробка виключення в `GlobalExceptionHandler`
+Тепер навчимо наш глобальний обробник перехоплювати `BookNotFoundException` і перетворювати його на правильну HTTP відповідь `404 Not Found`:
+
+```java
+    // Метод у GlobalExceptionHandler.java
+    @ExceptionHandler(BookNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(BookNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND) // Повертаємо 404
+                .body(ApiError.of(404, "Not Found", e.getMessage()));
+    }
+```
+
+### Крок 4: Ендпоінт у `BookController`
+Контролер просто викликає сервіс. Він не містить жодного `try-catch`, оскільки знає, що у разі помилки `GlobalExceptionHandler` перехопить її:
+
+```java
+    // Метод у BookController.java
+    @GetMapping("/{id}")
+    public BookResponse getBookById(@PathVariable Long id) {
+        return bookService.findById(id);
+    }
+```
 
 > [!NOTE]
-> **Питання для захисту:**
-> Скільки файлів треба змінити, щоб додати новий тип помилки (наприклад, `409 Conflict`)?
+> **Архітектурне питання:**
+> Якщо нам знадобиться обробити інший тип помилки (наприклад, `409 Conflict`, якщо книга вже існує), скільки файлів нам доведеться змінити?
+
+<details markdown="1">
+<summary>Відповідь</summary>
+
+**Три файли:**
+1. Створити клас `DuplicateBookException.java`.
+2. Додати перевірку та `throw new DuplicateBookException()` у `BookService`.
+3. Додати новий метод з `@ExceptionHandler` у `GlobalExceptionHandler`.
+*Контролер при цьому не змінюється взагалі!*
+</details>
 
 ---
 
@@ -191,7 +283,7 @@ public BookResponse addBook(String title, String author) {
 
 1. **Security.** Паролі в Git — це витік даних. Spring дозволяє перезаписати будь-яку властивість через аргументи запуску (`java -jar app.jar --app.password=123`) або змінні середовища ОС (`export APP_PASSWORD=123`).
 2. **500 Internal Server Error.** Це не вина клієнта, це вина сервера. Якщо ми не перехопили цей виняток явно, Spring Boot за замовчуванням поверне 500. Наш `GlobalExceptionHandler` повинен мати метод для `Exception.class` (general), щоб не світити деталі бази даних.
-3. **AOP (Aspect Oriented Programming).** Це наскрізна логіка. Ми "вклинюємось" у процес обробки запиту, якщо сталася помилка, не змінюючи код самого контролера. Це дозволяє тримати контролери чистими.
+3. **Окремий архітектурний рівень (Глобальний перехоплювач).** Він діє як "фільтр", що стоїть між контролером та клієнтом. Ми виносимо логіку обробки помилок в одне місце, замість того щоб дублювати `try-catch` у кожному методі. Це дозволяє тримати контролери абсолютно чистими.
 
 </details>
 
