@@ -289,6 +289,6 @@ public class BookNotFoundException extends RuntimeException {
 
 ---
 
-**[⬅️ P04: DI та архітектура](p04_spring_architecture_di.md)** | **[P07: Cloud Deployment ➡️](p07_spring_cloud_deployment.md)**
+**[⬅️ P04: DI та архітектура](p04_spring_architecture_di.md)** | **[P06: Docker на практиці ➡️](p06_docker_practice.md)**
 
 **[⬅️ Повернутися до головного меню курсу](../../index.md)**

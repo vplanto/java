@@ -299,8 +299,6 @@ COPY --from=builder ...        ←             → ПЕРЕЗБІРКА
 
 </details>
 
----
-
-**[⬅️ Лекція 9: Docker](../../09_docker.md)** | **[P08: API Practice ➡️](p08_api_practice.md)**
+**[⬅️ P05: Production Ready](p05_spring_production_ready.md)** | **[P07: Hello Cloud ➡️](p07_spring_cloud_deployment.md)**
 
 **[⬅️ Повернутися до головного меню курсу](../../index.md)**

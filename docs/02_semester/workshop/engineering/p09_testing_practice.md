@@ -384,8 +384,6 @@ List<Loan> result = loanService.getOverdueLoans(fixedClock);
 
 </details>
 
----
-
-**[⬅️ Лекція 8: Test Cases](../../08_test_cases.md)** | **[P06: Docker на практиці ➡️](p06_docker_practice.md)**
+**[⬅️ P08: API Design на практиці](p08_api_practice.md)**
 
 **[⬅️ Повернутися до головного меню курсу](../../index.md)**

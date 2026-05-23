@@ -641,8 +641,6 @@ class BookControllerTest {
 
 </details>
 
----
-
-**[⬅️ Лекція 7: API Design](../../07_api_design.md)** | **[Лекція 8: Test Cases ➡️](../../07_test_cases.md)**
+**[⬅️ P07: Hello Cloud](p07_spring_cloud_deployment.md)** | **[P09: Testing на практиці ➡️](p09_testing_practice.md)**
 
 **[⬅️ Повернутися до головного меню курсу](../../index.md)**

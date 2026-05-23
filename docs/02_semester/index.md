@@ -24,6 +24,7 @@
 | 1 | **[SDLC](01_sdlc.md)** | Етапи життя ПЗ. Роль Jira, Git, CI/CD |
 | 1a | **[Project Roles](01a_project_roles.md)** | Розширений перелік Enterprise ролей |
 | 2 | **[Delivery Methodology](02_delivery_methodology.md)** | Agile, Scrum, Kanban vs Waterfall |
+| 2a | **[Delivery Metrics](02a_metrics.md)** | Метрики доставки (Velocity, Lead/Cycle Time, Burndown, Quality Gates) |
 | 3 | **[Definition of Requirements](03_requirements.md)** | Функціональні вимоги. User Stories. Acceptance Criteria |
 
 ### Блок 2: Якість та Архітектурні Характеристики
@@ -43,7 +44,9 @@
 | 7 | **[API Design](07_api_design.md)** | REST, HTTP Codes. Контракти та версіонування. OpenAPI |
 | P | **[P08: API Practice Lab](workshop/engineering/p08_api_practice.md)** | Практичне застосування: URL, статуси, OpenAPI, Breaking Changes |
 | 8 | **[Test Cases & Coverage](08_test_cases.md)** | BVA, Decision Table. Unit vs Integration. Testcontainers |
+| P | **[P09: Testing на практиці](workshop/engineering/p09_testing_practice.md)** | Написання Unit/Integration тестів: Mockito, MockMvc, @DataJpaTest |
 | 9 | **[Docker & Containerization](09_docker.md)** | Dockerfile, Multi-stage build, cgroups, Docker Compose |
+| P | **[P06: Docker на практиці](workshop/engineering/p06_docker_practice.md)** | Практика з Docker: Dockerfile, Compose, PostgreSQL, Debugging |
 
 ### Блок 4: Розподілені Системи та System Design
 *Архітектура великих систем.*
@@ -57,16 +60,9 @@
 
 ---
 
----
-
-## [🏗️ Workshops: Scrum та Engineering Track](workshop/workshop_02_agile.md)
-*Матеріали для практичної роботи: симуляція Scrum (VARTA) та технічні практикуми.*
-
----
-
 ## Hands-on Track — Практикуми
 
-Паралельний трек, де теорія перетворюється на код.
+Паралельний трек, де теорія перетворюється на код та процеси.
 
 ### 🎯 Фінальний проєкт
 
@@ -75,33 +71,33 @@
 | **[P01: Фінальний проєкт — Від Ідеї до Хмари](workshop/engineering/p01_final_project_guide.md)** | Покрокова карта виконання: ідея → вимоги → API → README → тести → код → Docker → Cloud |
 | **[Agentic Pipeline vs Vibe Coding](workshop/engineering/vibe_coding.md)** | Філософія курсу та критерії оцінювання фінального проєкту |
 
-### System Design
+### 👥 Scrum та Agile
+
+| Файл | Лекція | Зміст |
+|---|---|---|
+| **[Workshop: Scrum Ceremonies (Case Study)](workshop/workshop_02_agile.md)** | Л2 | Planning, Daily, Review, Retrospective на реальному проєкті |
+
+### 📐 System Design
 
 | Файл | Зміст |
 |---|---|
 | **[Workshop: System Design (URL Shortener)](workshop/workshop_03_system_design.md)** | Live Design Session: Requirements, Base62, Data Design, FinOps |
 
-### Технічні практикуми
+### 💻 Spring Boot Ecosystem (Engineering Track)
+*Покрокова розробка, контейнеризація, деплой та тестування Production-Ready сервісу.*
 
 > **[Перейти до повного треку: Engineering Workshop Track ➡️](workshop/engineering/index.md)**
 
 | Файл | Лекція | Зміст |
 |---|---|---|
-| **[Workshop: Scrum Ceremonies (Case Study)](workshop/workshop_02_agile.md)** | Л2 | Planning, Daily, Review, Retrospective на реальному проєкті |
+| **[P02: Архітектура сучасних Web-застосунків](workshop/engineering/p02_spring_web_arch.md)** | — | SSR vs SPA, IoC Container, Spring Boot Philosophy |
+| **[P03: Zero to Hero — перший Spring Boot сервіс](workshop/engineering/p03_spring_zero_to_hero.md)** | — | Spring Initializr, Embedded Tomcat, REST Controller, DTO |
+| **[P04: Архітектурна гігієна та DI](workshop/engineering/p04_spring_architecture_di.md)** | — | Service Layer, Constructor Injection, Separation of Concerns |
+| **[P05: Production Ready](workshop/engineering/p05_spring_production_ready.md)** | — | External Config, Global Exception Handling, HTTP Status Codes |
+| **[P06: Docker на практиці](workshop/engineering/p06_docker_practice.md)** | Л9 | Dockerfile, Docker Compose + PostgreSQL, Debugging |
+| **[P07: Hello Cloud — деплой у хмару](workshop/engineering/p07_spring_cloud_deployment.md)** | Л10 | PaaS (Render.com), CI/CD, Cold Start, Environment Variables |
 | **[P08: API Design на практиці](workshop/engineering/p08_api_practice.md)** | Л7 | URL-структура, HTTP-статуси, OpenAPI YAML, Breaking Changes |
 | **[P09: Testing на практиці](workshop/engineering/p09_testing_practice.md)** | Л8 | Unit (Mockito), @DataJpaTest, MockMvc, Coverage |
-| **[P06: Docker на практиці](workshop/engineering/p06_docker_practice.md)** | Л9 | Dockerfile, Docker Compose + PostgreSQL, Debugging |
-
-### Spring Boot Ecosystem
-*Від фізики Web-процесів до автоматичного деплою в Production.*
-
-| Файл | Зміст |
-|---|---|
-| **[P02: Архітектура сучасних Web-застосунків](workshop/engineering/p02_spring_web_arch.md)** | SSR vs SPA, IoC Container, Spring Boot Philosophy |
-| **[P03: Zero to Hero — перший Spring Boot сервіс](workshop/engineering/p03_spring_zero_to_hero.md)** | Spring Initializr, Embedded Tomcat, REST Controller, DTO |
-| **[P04: Архітектурна гігієна та DI](workshop/engineering/p04_spring_architecture_di.md)** | Service Layer, Constructor Injection, Separation of Concerns |
-| **[P05: Production Ready](workshop/engineering/p05_spring_production_ready.md)** | External Config, Global Exception Handling, HTTP Status Codes |
-| **[P07: Hello Cloud — деплой у хмару](workshop/engineering/p07_spring_cloud_deployment.md)** | PaaS (Render.com), CI/CD, Cold Start, Environment Variables |
 
 ---
 
@@ -115,6 +111,11 @@
 4. Змінювати бізнес-параметри без перекомпіляції коду.
 5. Розгорнути сервіс у хмарі (HTTPS) з CI/CD.
 6. Спроєктувати систему з урахуванням NFRs і CAP-теореми.
+
+---
+
+## [🚀 Шлях Інженера: Підсумки курсу](engineering_mindset.md)
+*Підсумковий маніфест: ретроспектива вашої еволюції від першого рядка коду на C++ до проєктування розподілених систем.*
 
 ---
 

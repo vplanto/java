@@ -158,8 +158,6 @@ Render (як і будь-яка сучасна PaaS) налаштований н
 3. **Reverse Proxy.** Ваш Java-додаток дійсно слухає порт 8080 всередині контейнера. Але перед ним стоїть Load Balancer хмари, який приймає HTTPS (443) і перенаправляє трафік на ваш внутрішній 8080.
 
 </details>
----
-
-**[⬅️ P05: Production Ready](p05_spring_production_ready.md)**
+**[⬅️ P06: Docker на практиці](p06_docker_practice.md)** | **[P08: API Design на практиці ➡️](p08_api_practice.md)**
 
 **[⬅️ Повернутися до головного меню курсу](../../index.md)**
