@@ -2,7 +2,7 @@
 
 **Аудиторія:** 2-й курс (Junior Strong)
 **Тип:** Hands-on Lab
-**Попередні вимоги:** [Лекція 8: Test Cases & Coverage](../../08_test_cases.md), Spring Boot сервіс (P03–P05)
+**Попередні вимоги:** [Лекція 8: Test Cases & Coverage](../../08_test_cases.md), Spring Boot сервіс (P03–P05), згенерований та налаштований у [P08: API Design на практиці](p08_api_practice.md)
 
 > **English version:** [English](en/p09_testing_practice.md)
 
@@ -10,17 +10,27 @@
 
 ## Мета заняття
 
-Написати повноцінну тест-піраміду для `library-service`: Unit-тести для бізнес-логіки (`LoanFineCalculator`, `BookService`), та Controller-тест для HTTP-шару (`BookController`) через `@WebMvcTest`.
+Побудувати повноцінну тест-піраміду для нашого `library-service`: від швидких Unit-тестів бізнес-логіки (`LoanFineCalculator`, `BookService`) до Controller-тестів для перевірки HTTP-контрактів (`BookController`) за допомогою `@WebMvcTest` та `MockMvc`. Ми навчимося писати тести, які дійсно запобігають багам та фіксують інженерні контракти.
 
 ---
 
 ## Частина 1: Unit-тести бізнес-логіки (20 хв)
 
-### Вправа 1.1: Equivalence Partitioning
+### Бізнес-сценарій: Лояльна бібліотека та штрафи
+Наш бібліотечний сервіс видає книги читачам на певний термін. Ми хочемо стимулювати читачів повертати книги вчасно, тому ввели систему штрафів. Проте наша бібліотека є дружньою, тому ми надаємо **grace period** (пільговий період) у 3 дні. Якщо читач затримав книгу на 1, 2 чи 3 дні — штраф не нараховується. Починаючи з 4-го дня затримки, нараховується фіксований штраф у розмірі 2.50 грн за кожен день прострочення понад grace period (тобто за 4-й день затримки штраф складе 2.50 грн, за 5-й день — 5.00 грн і так далі).
 
-Є сервіс розрахунку штрафу за прострочену книгу:
+За розрахунок штрафу в нашому додатку відповідає клас `LoanFineCalculator`.
 
+**Файл: src/main/java/ua/edu/libraryservice/service/LoanFineCalculator.java**
 ```java
+package ua.edu.libraryservice.service;
+
+import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+@Component
 public class LoanFineCalculator {
     private static final BigDecimal DAILY_FINE = new BigDecimal("2.50");
     private static final int FREE_GRACE_DAYS = 3;
@@ -33,18 +43,35 @@ public class LoanFineCalculator {
 }
 ```
 
+### Вправа 1.1: Equivalence Partitioning для LoanFineCalculator
+#### Інженерний виклик
+Якщо ми будемо писати окремий тест для кожного можливого варіанту кількості днів запізнення (4 дні, 5 днів, 6 днів, 10 днів...), ми напишемо забагато дублюючого коду.
+Замість цього застосуємо техніку **Equivalence Partitioning** (розбиття на класи еквівалентності) та **Boundary Value Analysis** (аналіз граничних значень). Ми об'єднаємо всі можливі вхідні дані у класи, які обробляються однаково, та перевіримо поведінку коду на межах цих класів.
+
 Визначте класи еквівалентності і напишіть тести для кожного.
 
 <details markdown="1">
 <summary>Розв'язок</summary>
 
 Класи еквівалентності:
-- Здали вчасно (або раніше)
-- Прострочили, але в межах grace period (1–3 дні)
-- Прострочили понад grace period (4+ дні)
-- Граничні значення: рівно 3 дні, рівно 4 дні
+- Здали вчасно або раніше (`daysLate <= 0`) — штраф 0.00
+- Прострочили, але в межах пільгового періоду (`1 <= daysLate <= 3`) — штраф 0.00
+- Прострочили понад пільговий період (`daysLate >= 4`) — нараховується штраф
 
+Граничні значення (Boundaries):
+- Рівно 3 дні (останній безкоштовний день).
+- Рівно 4 дні (перший платний день).
+
+**Файл: src/test/java/ua/edu/libraryservice/service/LoanFineCalculatorTest.java**
 ```java
+package ua.edu.libraryservice.service;
+
+import org.junit.jupiter.api.Test;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 class LoanFineCalculatorTest {
 
     private final LoanFineCalculator calculator = new LoanFineCalculator();
@@ -71,7 +98,7 @@ class LoanFineCalculatorTest {
 
     @Test
     void should_charge_fine_for_first_day_after_grace() {
-        // Boundary: 4 дні — перший платний день
+        // Boundary: 4 дні — перший платний день (штраф за 1 день)
         BigDecimal fine = calculator.calculate(DUE_DATE, DUE_DATE.plusDays(4));
         assertThat(fine).isEqualByComparingTo("2.50");
     }
@@ -87,15 +114,56 @@ class LoanFineCalculatorTest {
 
 </details>
 
-### Вправа 1.2: Мокування залежностей
+### Вправа 1.2: Мокування залежностей (Mocking) для LoanService
+#### Бізнес-сценарій: Повернення книги та сповіщення
+Уявіть бізнес-вимогу: коли читач повертає книгу до бібліотеки, система повинна знайти запис позики в базі даних, розрахувати штраф за протермінування, зберегти зміни та, якщо штраф нараховано, надіслати читачеві сповіщення.
 
-Протестуйте `LoanService.returnBook()`. Використайте Mockito для ізоляції від реальної БД:
+**Архітектурне питання:** Де саме ми маємо розмістити цю координаційну логіку — в DTO, контролері, сервісі чи, можливо, в окремому інфраструктурному біні?
 
+<details markdown="1">
+<summary>Відповідь</summary>
+
+Логіку оркестрації повернення книги ми розміщуємо у **сервісі** (`LoanService`):
+- **DTO** (Data Transfer Object) — це просто тупий контейнер для даних. Він не повинен містити жодної бізнес-логіки.
+- **Контролер** — це шар представлення (API). Він має бути максимально "тонким" і займатися лише обробкою HTTP-запитів, статус-кодів та валідацією контракту.
+- **Сервіс** (Service Layer) — ідеальне місце для координації бізнес-процесу. Він оркеструє роботу репозиторію, калькулятора та служби сповіщень.
+- **Окремі біни/компоненти** (як `LoanFineCalculator`) — використовуються для винесення складної ізольованої логіки (наприклад, математичних розрахунків), яку легко протестувати юніт-тестами без моків.
+
+</details>
+
+Отже, наш сервіс `LoanService` має виконувати бізнес-операцію повернення за такими кроками:
+1. Знайти активну позику (`Loan`) в базі даних. Якщо її немає — кинути помилку `LoanNotFoundException`.
+2. Розрахувати суму штрафу за допомогою `LoanFineCalculator`.
+3. Змінити статус позики на `RETURNED`, записати суму штрафу і зберегти зміни в базу даних через `LoanRepository`.
+4. Якщо нараховано штраф (більше 0), надіслати сповіщення про це читачеві через зовнішній `NotificationService`.
+
+**Файл: src/main/java/ua/edu/libraryservice/service/LoanService.java**
 ```java
+package ua.edu.libraryservice.service;
+
+import org.springframework.stereotype.Service;
+import ua.edu.libraryservice.dto.LoanReturnResult;
+import ua.edu.libraryservice.dto.LoanStatus;
+import ua.edu.libraryservice.exception.LoanNotFoundException;
+import ua.edu.libraryservice.model.Loan;
+import ua.edu.libraryservice.repository.LoanRepository;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Service
 public class LoanService {
     private final LoanRepository loanRepository;
     private final LoanFineCalculator fineCalculator;
     private final NotificationService notificationService;
+
+    public LoanService(LoanRepository loanRepository,
+                       LoanFineCalculator fineCalculator,
+                       NotificationService notificationService) {
+        this.loanRepository = loanRepository;
+        this.fineCalculator = fineCalculator;
+        this.notificationService = notificationService;
+    }
 
     public LoanReturnResult returnBook(Long loanId, LocalDate returnDate) {
         Loan loan = loanRepository.findById(loanId)
@@ -115,18 +183,58 @@ public class LoanService {
 }
 ```
 
-<details markdown="1">
-<summary>Тести з Mockito</summary>
+#### Інженерний виклик
+Як протестувати логіку `LoanService` без підключення до реальної бази даних (через `LoanRepository`) та без відправки реальних сповіщень (через `NotificationService`)?
+Якщо ми спробуємо запустити тест із справжніми інфраструктурними компонентами, вони будуть занадто повільними, нестабільними та вимагатимуть складної конфігурації.
+Тут нам на допомогу приходить **Mockito** — фреймворк для створення заглушок (Mocks). Ми замінимо залежності нашого сервісу на керовані моки, поведінку яких ми зможемо програмувати в тестах за допомогою `given()` та перевіряти за допомогою `verify()`.
 
+Протестуйте `LoanService.returnBook()`. Використайте Mockito для ізоляції від інфраструктури.
+
+<details markdown="1">
+<summary>Розв'язок</summary>
+
+**Файл: src/test/java/ua/edu/libraryservice/service/LoanServiceTest.java**
 ```java
+package ua.edu.libraryservice.service;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ua.edu.libraryservice.dto.LoanReturnResult;
+import ua.edu.libraryservice.dto.LoanStatus;
+import ua.edu.libraryservice.exception.LoanNotFoundException;
+import ua.edu.libraryservice.model.Loan;
+import ua.edu.libraryservice.repository.LoanRepository;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 @ExtendWith(MockitoExtension.class)
 class LoanServiceTest {
 
-    @Mock LoanRepository loanRepository;
-    @Mock LoanFineCalculator fineCalculator;
-    @Mock NotificationService notificationService;
+    @Mock
+    private LoanRepository loanRepository;
 
-    @InjectMocks LoanService loanService;
+    @Mock
+    private LoanFineCalculator fineCalculator;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @InjectMocks
+    private LoanService loanService;
 
     @Test
     void should_return_book_without_fine_and_not_send_notification() {
@@ -146,19 +254,24 @@ class LoanServiceTest {
 
     @Test
     void should_send_fine_notification_when_overdue() {
+        // Arrange
         Loan loan = new Loan(1L, 42L, LocalDate.of(2024, 3, 10), LoanStatus.ACTIVE);
         given(loanRepository.findById(1L)).willReturn(Optional.of(loan));
         given(fineCalculator.calculate(any(), any())).willReturn(new BigDecimal("7.50"));
 
+        // Act
         loanService.returnBook(1L, LocalDate.of(2024, 3, 17));
 
+        // Assert
         verify(notificationService).sendFineNotification(eq(42L), eq(new BigDecimal("7.50")));
     }
 
     @Test
     void should_throw_when_loan_not_found() {
+        // Arrange
         given(loanRepository.findById(999L)).willReturn(Optional.empty());
 
+        // Act & Assert
         assertThatThrownBy(() -> loanService.returnBook(999L, LocalDate.now()))
             .isInstanceOf(LoanNotFoundException.class);
 
@@ -173,14 +286,34 @@ class LoanServiceTest {
 
 ## Частина 2: Unit-тест `BookService` (20 хв)
 
-### Вправа 2.1: Тестування in-memory сервісу
+### Бізнес-сценарій: Керування каталогом книг
+У нашому застосунку `BookService` відповідає за збереження та валідацію книг. Оскільки ми поки що зберігаємо книги in-memory (просто у списку `List<BookResponse>`), у нас немає потреби підіймати базу даних. Ми маємо перевірити такі правила:
+1. При ініціалізації додаються початкові (seed) книги.
+2. Не можна додати книгу з порожньою назвою.
+3. Не можна перевищити максимальний ліміт кількості книг у бібліотеці (параметр, що зчитується з конфігурації у P05).
+4. Якщо книга з певним ID не знайдена, кидається `BookNotFoundException`.
 
-`BookService` зберігає книги у `List<BookResponse>` та `AtomicLong` (P04). Тут немає БД — тому тест простий і швидкий: просто `new BookService(...)`, без Spring.
+### Інженерний виклик
+Багато розробників-початківців автоматично додають `@SpringBootTest` до будь-якого тесту. Але `@SpringBootTest` підіймає весь контекст Spring, шукає всі біни та конфігурації. Це займає від 3 до 10 секунд на старт. Якщо таких тестів буде 100, збірка проєкту в CI/CD триватиме хвилини.
+Оскільки наш `BookService` не має зовнішніх залежностей від інфраструктури, ми можемо протестувати його як звичайний Java-клас: створити його вручну через `new BookService("Test Library", 3)` у секції `@BeforeEach`. Такі тести виконуються за частки мілісекунди.
 
 > [!NOTE]
-> Ми не використовуємо `@DataJpaTest` — JPA у цьому проєкті відсутній. Тестуємо бізнес-логіку сервісу напряму.
+> Ми не використовуємо `@DataJpaTest` — JPA у цьому проєкті відсутній. Тестуємо бізнес-логіку сервісу напряму як чистий Java-код.
 
+**Файл: src/test/java/ua/edu/libraryservice/service/BookServiceTest.java**
 ```java
+package ua.edu.libraryservice.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.exception.BookNotFoundException;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 class BookServiceTest {
 
     private BookService bookService;
@@ -194,7 +327,7 @@ class BookServiceTest {
     @Test
     void findAll_shouldReturnSeedBooks() {
         List<BookResponse> books = bookService.findAll();
-        assertThat(books).hasSize(2); // seed-дані з конструктора (P04)
+        assertThat(books).hasSize(2); // seed-дані з конструктора (P04/P05)
     }
 
     @Test
@@ -209,7 +342,7 @@ class BookServiceTest {
         // Ліміт = 3, seed = 2 → одна книга ще влізе
         bookService.addBook("Extra Book", "Author");
 
-        // Четверта — має впасти
+        // Четверта книга — має викликати помилку ліміту
         assertThatThrownBy(() -> bookService.addBook("One Too Many", "Author"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("заповнена");
@@ -231,22 +364,48 @@ class BookServiceTest {
 ```
 
 > [!TIP]
-> **Чому це краще ніж `@DataJpaTest`?**
-> `@DataJpaTest` підіймає Spring-контекст і H2 — це 3–5 секунд на старт. Тест вище виконується за мілісекунди і не має зовнішніх залежностей. Саме такі тести складають основу **піраміди тестування**.
+> **Чому це краще ніж `@DataJpaTest` чи `@SpringBootTest`?**
+> `@SpringBootTest` підіймає Spring-контекст — це 3–5 секунд на старт. Тест вище виконується за мілісекунди і не має зовнішніх залежностей. Саме такі "чисті" тести складають основу **піраміди тестування** (Unit-рівень).
 
 ---
 
 ## Частина 3: Controller-тест (MockMvc) (20 хв)
 
-### Вправа 3.1: @WebMvcTest
+### Бізнес-сценарій: Стабільність HTTP контракту
+У P08 мы спроектували API-контракт для нашого сервісу. Ми гарантували клієнтам:
+1. `GET /api/books` повертає список книг із статусом `200 OK`.
+2. `GET /api/books/{id}` повертає книгу, якщо вона існує. Якщо ні — повертає `404 Not Found` з структурованим об'єктом помилки `ApiError`.
+3. Запит із неправильним типом параметра (наприклад, літери замість ID книги) повертає `400 Bad Request`.
 
-Протестуйте `BookController.getAllBooks()` та `BookController.getBook()` без підняття реального сервера:
+### Інженерний виклик
+Як протестувати ці правила HTTP-взаємодії, не запускаючи при цьому реальний веб-сервер (Tomcat) і не виконуючи справжніх HTTP-запитів по мережі?
+Spring Boot надає інструмент `@WebMvcTest` разом із `MockMvc`. Вони дозволяють протестувати лише веб-шар (Spring MVC) в ізоляції. При цьому:
+- Контекст Spring завантажує лише контролери, фільтри та `GlobalExceptionHandler`.
+- Всі сервіси (наприклад, `BookService`) заміняються на моки за допомогою `@MockBean`.
+- `MockMvc` дозволяє симулювати HTTP-запити в пам'яті та перевіряти відповіді за допомогою виразного API (флюент-методів `status()`, `jsonPath()`).
 
+Протестуйте `BookController`, використовуючи `@WebMvcTest`.
+
+Згадаємо структуру нашого контролера:
+
+**Файл: src/main/java/ua/edu/libraryservice/controller/BookController.java**
 ```java
+package ua.edu.libraryservice.controller;
+
+import org.springframework.web.bind.annotation.*;
+import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.service.BookService;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
     private final BookService bookService;
+
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
 
     @GetMapping
     public List<BookResponse> getAllBooks() {
@@ -263,18 +422,43 @@ public class BookController {
 <details markdown="1">
 <summary>Тест з MockMvc</summary>
 
+**Файл: src/test/java/ua/edu/libraryservice/controller/BookControllerTest.java**
 ```java
+package ua.edu.libraryservice.controller;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.exception.BookNotFoundException;
+import ua.edu.libraryservice.service.BookService;
+
+import java.util.List;
+
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(BookController.class)
 class BookControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @MockBean BookService bookService;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private BookService bookService;
 
     @Test
     void getAllBooks_shouldReturnList() throws Exception {
+        // Given
         given(bookService.findAll())
             .willReturn(List.of(new BookResponse(1L, "Clean Code", "Robert C. Martin")));
 
+        // When & Then
         mockMvc.perform(get("/api/books")
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
@@ -284,9 +468,11 @@ class BookControllerTest {
 
     @Test
     void getBook_shouldReturn404_whenNotFound() throws Exception {
+        // Given
         given(bookService.findById(999L))
             .willThrow(new BookNotFoundException("Book with id 999 not found"));
 
+        // When & Then
         mockMvc.perform(get("/api/books/999"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Book with id 999 not found"));
@@ -294,13 +480,14 @@ class BookControllerTest {
 
     @Test
     void getBook_shouldReturn400_whenIdIsNotANumber() throws Exception {
+        // When & Then
         mockMvc.perform(get("/api/books/abc"))
             .andExpect(status().isBadRequest());
     }
 }
 ```
 
-`@WebMvcTest` підіймає тільки MVC-шар. BookService мокується через `@MockBean`.
+`@WebMvcTest` підіймає тільки MVC-шар. `BookService` мокується через `@MockBean`.
 
 </details>
 
@@ -308,23 +495,41 @@ class BookControllerTest {
 
 ## Частина 4: Аналіз coverage (10 хв)
 
-### Вправа 4.1: Знайди прогалини
+### Бізнес-сценарій: Ілюзія безпеки
+Команда розробників написала тести для `LoanFineCalculator.calculate()`. Менеджер проєкту перевірив звіт у SonarQube і побачив гарне число: **100% Line Coverage** (покриття рядків коду). Всі задоволені, реліз коду пішов на production.
+Проте через тиждень бібліотека виявила фінансові втрати: деяким читачам неправильно розраховувався штраф, і вони не платили нічого за прострочені книги. Як таке могло статися, якщо покриття було 100%?
 
-Подивіться на звіт Coverage для `LoanFineCalculator.calculate()`. Що означає 100% line coverage, але 80% branch coverage?
+### Вправа 4.1: Знайди прогалини
+#### Інженерний виклик: Line Coverage vs Branch Coverage
+Line Coverage показує лише те, що кожен рядок коду хоча б один раз виконувався під час тестів. Але він ігнорує логічні розгалуження.
+
+Подивімося знову на рядок:
+```java
+if (daysLate <= FREE_GRACE_DAYS) return BigDecimal.ZERO;
+```
+
+Якщо мы написали лише два тести:
+1. Повернуто вчасно (`daysLate = 0` → умова `true`, повертає `ZERO`).
+2. Повернуто з великою затримкою (`daysLate = 10` → умова `false`, повертає штраф).
+
+Ми виконали обидва рядки, отже Line Coverage = 100%.
+Але що означає 100% line coverage, але тільки 80% branch coverage для всього методу?
 
 <details markdown="1">
-<summary>Відповідь</summary>
+<summary>Аналіз та відповідь</summary>
 
 100% line coverage: кожен рядок коду виконувався хоча б один раз.
 80% branch coverage: 20% гілок (умови `if`/`else`) не були покриті.
 
-Для `if (daysLate <= FREE_GRACE_DAYS)` потрібні два тести:
-- один де умова `true` (daysLate ≤ 3)
-- один де умова `false` (daysLate > 3)
+Для повноцінного тестування `if (daysLate <= FREE_GRACE_DAYS)` нам критично протестувати граничні значення:
+- `daysLate = 3` (умова `true`, повертає `ZERO`) — межа пільгового періоду.
+- `daysLate = 4` (умова `false`, нараховує штраф за 1 день) — перша точка виходу за межу.
 
-Ви могли виконати обидва рядки, але тільки одну гілку — тоді лінії зелені, а branch — ні.
+Якщо розробник помилився і написав `if (daysLate < FREE_GRACE_DAYS)` (використав `<` замість `<=`), то при 3 днях запізнення клієнт вже отримав би штраф. Звичайний тест на 0 днів та 10 днів не виявив би цього багу! Тільки тест на граничне значення `daysLate = 3` помітить помилку.
 
-Branch coverage знаходить більше помилок, ніж line coverage. Mutation testing (PIT) — ще покращений підхід: перевіряє, чи зміна `<=` на `<` зламає тест.
+Branch coverage знаходить набагато більше помилок, ніж line coverage, оскільки вимагає покрити всі логічні шляхи.
+
+Ще потужнішим інструментом є **Mutation Testing** (мутаційне тестування, наприклад фреймворк PIT). Він автоматично модифікує ваш байт-код (змінює `<=` на `<`, `+` на `-`, `true` на `false`) і запускає тести. Якщо після зміни коду тести продовжують успішно проходити (зелені) — отже, ваші тести слабкі («мутант вижив»). Якщо хоча б один тест впав — «мутант убитий», ваші тести якісні.
 
 </details>
 
@@ -332,55 +537,59 @@ Branch coverage знаходить більше помилок, ніж line cove
 
 ## Контрольні питання
 
-1. **Архітектурне питання:** Чому в `LoanServiceTest` ми використовуємо `@Mock` (Mockito), а в `BookControllerTest` — `@MockBean` (Spring)? Яка між ними різниця?
+1. **Архітектурний вибір моків:** Чому в `LoanServiceTest` ми використовуємо `@Mock` (Mockito), а в `BookControllerTest` — `@MockBean` (Spring)? Яка між ними принципова різниця в контексті швидкості виконання тестів?
 
 <details markdown="1">
 <summary>Відповідь</summary>
 
-`@Mock` — чистий Mockito мок, не залежить від Spring. Використовується разом з `@ExtendWith(MockitoExtension.class)` без підняття Spring Context. Швидкий.
+- `@Mock` — це чистий Mockito-мок, він не залежить від Spring. Використовується разом з `@ExtendWith(MockitoExtension.class)`. Такі тести є класичними unit-тестами, вони не підіймають контекст програми і виконуються за частки мілісекунди.
+- `@MockBean` — це Spring-специфічна анотація. Вона створює Mockito-мок і реєструє його в Spring Application Context. Це необхідно при інтеграційному або slice-тестуванні (як `@WebMvcTest`), щоб Spring міг впровадити цей мок у залежності контролера через Dependency Injection (DI). Такі тести повільніші, бо потребують ініціалізації контексту (3–5 секунд).
 
-`@MockBean` — реєструє мок у Spring Application Context. Потрібен коли тест підіймає Spring (як `@WebMvcTest`), щоб Spring міг впроваджувати мок у контролер через DI. Повільніший через ініціалізацію контексту.
-
-Правило: якщо тестуєте без Spring — `@Mock`. Якщо Spring context потрібен — `@MockBean`.
+**Правило:** якщо тестуєте звичайну логіку без використання фреймворку — обирайте швидкий `@Mock`. Якщо тестуєте інтеграцію з веб-шаром чи базою — використовуйте `@MockBean`.
 
 </details>
 
-2. **Flaky test:** Ваш тест `should_return_overdue_loans` іноді падає. Ви помітили, що він залежить від поточної дати (`LocalDate.now()`). Як виправити?
+2. **Боротьба з Flaky-тестами:** Ваш інтеграційний тест успішно проходить вдень, але раптово падає на нічній CI/CD збірці о 00:05. Ви виявили, що бізнес-логіка залежить від поточної дати (`LocalDate.now()`). Як зробити цей тест детермінованим і надійним?
 
 <details markdown="1">
 <summary>Відповідь</summary>
 
-Передавати `Clock` як залежність замість виклику `LocalDate.now()` напряму:
+Замість виклику статичного `LocalDate.now()` безпосередньо в бізнес-коді, потрібно використовувати системний годинник `Clock` як залежність, яку можна заінжектувати:
 
+**У бізнес-сервісі:**
 ```java
-// Сервіс:
-public List<Loan> getOverdueLoans(Clock clock) {
-    return loanRepository.findOverdueLoans(LocalDate.now(clock));
-}
+public class LoanService {
+    private final Clock clock; // інжектується через конструктор
 
-// Тест:
-LocalDate fakeToday = LocalDate.of(2024, 6, 1);
-Clock fixedClock = Clock.fixed(fakeToday.atStartOfDay(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC);
-List<Loan> result = loanService.getOverdueLoans(fixedClock);
+    public List<Loan> getOverdueLoans() {
+        LocalDate today = LocalDate.now(clock);
+        return loanRepository.findOverdueLoans(today);
+    }
+}
 ```
 
-Так тест детермінований і не залежить від системного часу.
+**У тестовому класі:**
+```java
+LocalDate fakeToday = LocalDate.of(2024, 6, 1);
+Clock fixedClock = Clock.fixed(fakeToday.atStartOfDay(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC);
+// передаємо фіксований годинник у сервіс:
+LoanService loanService = new LoanService(loanRepository, fineCalculator, notificationService, fixedClock);
+```
+
+Тепер годинник завжди повертає одну й ту саму дату, і тест є абсолютно стабільним (детермінованим) незалежно від часу запуску.
 
 </details>
 
-3. **Performance:** `@SpringBootTest` піднімає весь контекст. Чому це проблема, якщо таких тестів 50?
+3. **Продуктивність збірки:** Розробник створив 50 тестів, і кожен з них помічений анотацією `@SpringBootTest`. Чому лід-інженер змусить його переписати ці тести, і яка альтернатива?
 
 <details markdown="1">
 <summary>Відповідь</summary>
 
-`@SpringBootTest` займає 3–10 секунд на ініціалізацію. 50 таких тестів = 4–8 хвилин тільки на старт контексту.
-
-Рішення: використовувати мінімально необхідний slice-тест:
-- `@WebMvcTest` — тільки MVC-шар
-- `@MockBean` — мокуємо те, що не тестуємо
-- Для in-memory сервісів — просто `new Service(...)` без жодних анотацій
-
-`@SpringBootTest` залишаємо лише для end-to-end інтеграційних тестів, яких повинно бути мало (верхівка піраміди).
+Кожен `@SpringBootTest` намагається ініціалізувати весь контекст програми. Навіть із оптимізацією кешування контексту Spring, 50 таких тестів суттєво уповільнять збірку проєкту в CI/CD (до кількох хвилин).
+Альтернатива — дотримуватися **піраміди тестування**:
+- Основну частину тестів (80%) писати як швидкі **Unit-тести** (без Spring, звичайний `new Service(...)` та `@Mock`).
+- Для веб-рівня використовувати легкі **Slice-тести** (`@WebMvcTest` + `MockMvc`), які завантажують лише мінімум веб-компонентів.
+- `@SpringBootTest` залишати лише для декількох критичних наскрізних (End-to-End) інтеграційних тестів, які перевіряють роботу системи в цілому.
 
 </details>
 

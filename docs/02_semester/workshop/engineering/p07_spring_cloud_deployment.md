@@ -112,7 +112,7 @@ curl "https://<ВАШ_URL>.onrender.com/api/books"
 ```
 
 **Очікуваний результат:**
-JSON-масив книг. Ліміт бібліотеки — **50** (значення з Cloud Dashboard), а не 100 з `application.properties`.
+JSON-масив книг. Ліміт бібліотеки — **50** (значення з Cloud Dashboard), а не 200 (чи інше значення, яке ви вказали локально в `application.properties`).
 
 > [!IMPORTANT]
 > **Engineering Case Study: "Cold Start"**

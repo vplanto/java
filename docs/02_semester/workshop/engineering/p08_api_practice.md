@@ -57,7 +57,7 @@ GET    /Books/list
 <details markdown="1">
 <summary>Обґрунтування (Статуси)</summary>
 
-- **204 vs 200**: DELETE не має повертати тіло, якщо ресурс видалено完全に.
+- **204 vs 200**: DELETE не має повертати тіло, якщо ресурс видалено повністю.
 - **404 vs 200**: 200 означає "успішно", а відсутність ресурсу — це помилка клієнта.
 - **201 vs 200**: Створення ресурсу має свій специфічний статус.
 - **401 vs 403**: 401 — "я не знаю хто ти", 403 — "я знаю хто ти, але не пущу".
@@ -67,78 +67,33 @@ GET    /Books/list
 
 ### Архітектурне рішення (ADR): Від аудиту до імплементації
 
-Оскільки під час аудиту (Частина 1) ми виявили фундаментальні архітектурні вади у Legacy-системі — від порушення чистоти URL до маскування помилок клієнта статусом 200/500 — ми приймаємо стратегічне рішення: **не рефакторити старий код, а написати новий сервіс з нуля на Spring Boot**.
+Оскільки під час аудиту (Частина 1) ми виявили фундаментальні архітектурні вади у Legacy-системі — від порушення чистоти URL до маскування помилок клієнта статусом 200/500 — ми приймаємо стратегічне рішення: **розширити та рефакторити наш існуючий сервіс `library-service`**, привівши його API у повну відповідність до REST-стандартів.
 
 Ми будемо використовувати **Contract-First підхід**:
 - Всі виправлення, які ви занесли в таблиці аудиту, стають нашими новими **Non-Functional Requirements (NFR)**.
-- Це гарантує, що нова система буде безпечною, стабільною та зручною для фронтенд-розробників із самого початку.
+- Це гарантує, що система буде безпечною, стабільною та зручною для інтеграції із самого початку.
 
 ---
 
-## Частина 2: Ініціалізація проєкту та Інженерні контракти (20 хв)
+## Частина 2: Інженерні контракти та розширення конфігурації (20 хв)
 
-### 2.1: Створення Maven-проєкту
+### 2.1: Додавання залежностей до існуючого проєкту
 
-Для початку роботи необхідно ініціалізувати Maven-проєкт (Java 17 або 21). Ви можете скористатися [Spring Initializr](https://start.spring.io/) або створити `pom.xml` вручну.
+Ми продовжуємо розробку нашого Spring Boot сервісу `library-service`, розпочатого в попередніх практикумах (**P03–P05**). Не потрібно створювати новий проєкт з нуля. Всі наступні класи ми будемо додавати до нашого існуючого пакету `ua.edu.libraryservice`.
 
-**Потрібні залежності:**
-- `spring-boot-starter-web` — для створення REST-контролерів.
-- `springdoc-openapi-starter-webmvc-ui` — для автогенерації OpenAPI специфікації та доступу до Swagger UI.
-- `spring-boot-starter-test` — для написання модульних та інтеграційних тестів.
+Відкрийте файл `pom.xml` вашого поточного проєкту та додайте бібліотеку для автодокументації OpenAPI (Swagger UI) у секцію `<dependencies>`:
 
+**Файл: pom.xml (додати у секцію <dependencies>)**
 ```xml
-<project>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
-        <relativePath/>
-    </parent>
-
-    <dependencies>
-        <!-- Spring Boot Web Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
         <!-- OpenAPI/Swagger documentation -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.5</version>
         </dependency>
-
-        <!-- Spring Boot Test Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-</project>
 ```
 
-
-### 2.1.1: Створення через IntelliJ IDEA (По кроках)
-
-Якщо ви використовуєте IntelliJ IDEA Ultimate або Community з плагіном Spring, це найшвидший шлях:
-
-1. **Запустіть Майстер:** `File` -> `New` -> `Project...`
-2. **Оберіть Spring Initializr:** У лівій панелі оберіть **Spring Initializr**.
-3. **Налаштуйте Проєкт:**
-   - **Name:** `library`
-   - **Group:** `ua.edu.onu`
-   - **Artifact:** `library`
-   - **Package name:** `ua.edu.onu.library`
-   - **Build system:** `Maven`
-   - **JDK:** 17 або 21
-4. **Оберіть залежності (Dependencies):**
-   - Наступний крок (Next).
-   - У пошуку знайдіть та додайте:
-     - `Spring Web`
-     - `SpringDoc OpenAPI UI` (або просто `springdoc` в останніх версіях)
-5. **Фініш:** Натисніть **Create**. IDEA сама згенерує `pom.xml` та структуру папок.
+Після цього оновіть конфігурацію Maven у вашій IDE (Reload Project), щоб завантажити нову залежність.
 
 
 ### 2.2: Інженерні контракти (NFR)
@@ -153,11 +108,11 @@ GET    /Books/list
 
 Тепер, коли проєкт налаштований, необхідно створити модель даних для нашого сервісу "Бібліотека". Ваші DTO мають відповідати бізнес-моделі, яку ви спроєктували під час аудиту.
 
-**Завдання:** Створіть у пакеті `ua.edu.onu.library.dto` (директорія `src/main/java/ua/edu/onu/library/dto/`) класи `record` для наступних сутностей.
+**Завдання:** Створіть у пакеті `ua.edu.libraryservice.dto` (директорія `src/main/java/ua/edu/libraryservice/dto/`) класи `record` для наступних сутностей.
 
-**Файл: src/main/java/ua/edu/onu/library/dto/Book.java**
+**Файл: src/main/java/ua/edu/libraryservice/dto/Book.java**
 ```java
-package ua.edu.onu.library.dto;
+package ua.edu.libraryservice.dto;
 
 import java.time.LocalDate;
 
@@ -167,18 +122,18 @@ import java.time.LocalDate;
 public record Book(Long id, String title, String isbn, LocalDate publishedAt) {}
 ```
 
-**Файл: src/main/java/ua/edu/onu/library/dto/Loan.java**
+**Файл: src/main/java/ua/edu/libraryservice/dto/Loan.java**
 ```java
-package ua.edu.onu.library.dto;
+package ua.edu.libraryservice.dto;
 
 import java.time.LocalDate;
 
 public record Loan(Long id, Long bookId, Long readerId, LocalDate dueDate) {}
 ```
 
-**Файл: src/main/java/ua/edu/onu/library/dto/LoanRequest.java**
+**Файл: src/main/java/ua/edu/libraryservice/dto/LoanRequest.java**
 ```java
-package ua.edu.onu.library.dto;
+package ua.edu.libraryservice.dto;
 
 public record LoanRequest(Long bookId, Long readerId) {}
 ```
@@ -202,16 +157,16 @@ public record LoanRequest(Long bookId, Long readerId) {}
 > **Vibe Coding Protocol (AI Ownership):** Ви можете попросити AI згенерувати код цих контролерів. АЛЕ ваша зона відповідальності — переконатися, що згенерований код суворо відповідає правильним HTTP-статусам з Частини 1. Якщо AI запропонує `200 OK` для видалення ресурсу — ви маєте змусити його виправити це на `204 No Content`.
 
 **1. Оновіть існуючий `BookController` (з P04) та `BookService`:**
-Додайте методи для отримання книги та видалення.
+Оновіть анотацію класу `BookController`: замініть `@RequestMapping("/api/books")` на `@RequestMapping("/api/v1/books")` для дотримання нового контракту версіонування. Також додайте методи для отримання книги та видалення.
 
 ```java
-package ua.edu.onu.library.controller;
+package ua.edu.libraryservice.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ua.edu.onu.library.dto.Book;
-import ua.edu.onu.library.exception.UnauthorizedException;
-import ua.edu.onu.library.service.BookService;
+import ua.edu.libraryservice.dto.Book;
+import ua.edu.libraryservice.exception.UnauthorizedException;
+import ua.edu.libraryservice.service.BookService;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -247,15 +202,15 @@ public class BookController {
 **2. Створіть новий `LoanController`:**
 
 ```java
-package ua.edu.onu.library.controller;
+package ua.edu.libraryservice.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ua.edu.onu.library.dto.Loan;
-import ua.edu.onu.library.dto.LoanRequest;
-import ua.edu.onu.library.exception.UnauthorizedException;
-import ua.edu.onu.library.service.LoanService;
+import ua.edu.libraryservice.dto.Loan;
+import ua.edu.libraryservice.dto.LoanRequest;
+import ua.edu.libraryservice.exception.UnauthorizedException;
+import ua.edu.libraryservice.service.LoanService;
 
 @RestController
 @RequestMapping("/api/v1/loans")
@@ -282,11 +237,11 @@ public class LoanController {
 
 Для коректної роботи нам потрібні класи виключень, які Spring зможе перехопити та перетворити на зрозумілі відповіді.
 
-**Створіть у пакеті ua.edu.onu.library.exception наступні виключення:**
+**Створіть у пакеті `ua.edu.libraryservice.exception` наступні виключення:**
 
-**Файл: src/main/java/ua/edu/onu/library/exception/UnauthorizedException.java**
+**Файл: src/main/java/ua/edu/libraryservice/exception/UnauthorizedException.java**
 ```java
-package ua.edu.onu.library.exception;
+package ua.edu.libraryservice.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -297,9 +252,9 @@ public class UnauthorizedException extends RuntimeException {
 }
 ```
 
-**Файл: src/main/java/ua/edu/onu/library/exception/BookNotFoundException.java**
+**Файл: src/main/java/ua/edu/libraryservice/exception/BookNotFoundException.java**
 ```java
-package ua.edu.onu.library.exception;
+package ua.edu.libraryservice.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -312,9 +267,36 @@ public class BookNotFoundException extends RuntimeException {
 
 **Тепер реалізуйте сервіси та бізнес-логіку:**
 
-**Файл: src/main/java/ua/edu/onu/library/service/LoanFineCalculator.java**
+**Файл: src/main/java/ua/edu/libraryservice/service/NotificationService.java**
 ```java
-package ua.edu.onu.library.service;
+package ua.edu.libraryservice.service;
+
+import java.math.BigDecimal;
+
+public interface NotificationService {
+    void sendFineNotification(Long readerId, BigDecimal fineAmount);
+}
+```
+
+**Файл: src/main/java/ua/edu/libraryservice/service/ConsoleNotificationService.java**
+```java
+package ua.edu.libraryservice.service;
+
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+
+@Service
+public class ConsoleNotificationService implements NotificationService {
+    @Override
+    public void sendFineNotification(Long readerId, BigDecimal fineAmount) {
+        System.out.println("Console Alert: Reader " + readerId + " has a fine of $" + fineAmount);
+    }
+}
+```
+
+**Файл: src/main/java/ua/edu/libraryservice/service/LoanFineCalculator.java**
+```java
+package ua.edu.libraryservice.service;
 
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
@@ -334,21 +316,23 @@ public class LoanFineCalculator {
 }
 ```
 
-**Файл: src/main/java/ua/edu/onu/library/service/LoanService.java**
+**Файл: src/main/java/ua/edu/libraryservice/service/LoanService.java**
 ```java
-package ua.edu.onu.library.service;
+package ua.edu.libraryservice.service;
 
 import org.springframework.stereotype.Service;
-import ua.edu.onu.library.dto.Loan;
-import ua.edu.onu.library.dto.LoanRequest;
+import ua.edu.libraryservice.dto.Loan;
+import ua.edu.libraryservice.dto.LoanRequest;
 import java.time.LocalDate;
 
 @Service
 public class LoanService {
     private final LoanFineCalculator fineCalculator;
+    private final NotificationService notificationService;
 
-    public LoanService(LoanFineCalculator fineCalculator) {
+    public LoanService(LoanFineCalculator fineCalculator, NotificationService notificationService) {
         this.fineCalculator = fineCalculator;
+        this.notificationService = notificationService;
     }
 
     public Loan createLoan(LoanRequest request) {
@@ -516,19 +500,19 @@ Swagger — це не просто документація, а жива піс�
 > *   **Статичні імпорти (`import static`)** — необхідні для використання таких методів як `when()`, `get()`, `status()`, `jsonPath()`. Вони роблять код тесту читабельним (Fluent API).
 
 
-**Створіть файл src/test/java/ua/edu/onu/library/controller/BookControllerTest.java:**
+**Створіть файл src/test/java/ua/edu/libraryservice/controller/BookControllerTest.java:**
 
 ```java
-package ua.edu.onu.library.controller;
+package ua.edu.libraryservice.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ua.edu.onu.library.dto.Book;
-import ua.edu.onu.library.exception.BookNotFoundException;
-import ua.edu.onu.library.service.BookService;
+import ua.edu.libraryservice.dto.Book;
+import ua.edu.libraryservice.exception.BookNotFoundException;
+import ua.edu.libraryservice.service.BookService;
 import java.time.LocalDate;
 
 import static org.mockito.Mockito.when;
