@@ -4,8 +4,6 @@
 **Тип:** Hands-on Lab
 **Попередні вимоги:** [Лекція 8: Test Cases & Coverage](../../08_test_cases.md), Spring Boot сервіс (P03–P05), згенерований та налаштований у [P08: API Design на практиці](p08_api_practice.md)
 
-> **English version:** [English](en/p09_testing_practice.md)
-
 ---
 
 ## Мета заняття
@@ -118,16 +116,21 @@ class LoanFineCalculatorTest {
 #### Бізнес-сценарій: Повернення книги та сповіщення
 Уявіть бізнес-вимогу: коли читач повертає книгу до бібліотеки, система повинна знайти запис позики в базі даних, розрахувати штраф за протермінування, зберегти зміни та, якщо штраф нараховано, надіслати читачеві сповіщення.
 
-**Архітектурне питання:** Де саме ми маємо розмістити цю координаційну логіку — в DTO, контролері, сервісі чи, можливо, в окремому інфраструктурному біні?
+**Архітектурне питання:** Де саме ми маємо розмістити цю координаційну логіку (оркестрацію повернення книги, збереження в БД, сповіщення) — в DTO, контролері, сервісі чи, можливо, в окремому інфраструктурному біні?
 
 <details markdown="1">
-<summary>Відповідь</summary>
+<summary>Відповідь: Розділення відповідальності (Separation of Concerns)</summary>
 
-Логіку оркестрації повернення книги ми розміщуємо у **сервісі** (`LoanService`):
-- **DTO** (Data Transfer Object) — це просто тупий контейнер для даних. Він не повинен містити жодної бізнес-логіки.
-- **Контролер** — це шар представлення (API). Він має бути максимально "тонким" і займатися лише обробкою HTTP-запитів, статус-кодів та валідацією контракту.
-- **Сервіс** (Service Layer) — ідеальне місце для координації бізнес-процесу. Він оркеструє роботу репозиторію, калькулятора та служби сповіщень.
-- **Окремі біни/компоненти** (як `LoanFineCalculator`) — використовуються для винесення складної ізольованої логіки (наприклад, математичних розрахунків), яку легко протестувати юніт-тестами без моків.
+> [!WARNING]
+> **Порушення архітектури (Fat Controllers або "розумні" DTO):**
+> Розміщення координаційної логіки (оркестрація повернення книги, збереження в БД, сповіщення) безпосередньо в контролері або DTO є грубим порушенням архітектури. Це ускладнює тестування, призводить до дублювання коду і порушує принципи чистої архітектури.
+
+> [!IMPORTANT]
+> **Принцип розділення відповідальності (Separation of Concerns):**
+> - **DTO (Data Transfer Object):** має бути абсолютно "тупим" (dumb) контейнером без жодної бізнес-логіки.
+> - **Контролер (Controller):** повинен бути максимально "тонким" (thin). Його відповідальність обмежена виключно HTTP-контрактом, статус-кодами та валідацією запитів.
+> - **Сервісний шар (Service Layer - `LoanService`):** єдине правильне місце для координаційної логіки (оркестрації бізнес-процесів, взаємодії з репозиторіями та зовнішніми службами сповіщень).
+> - **Ізольовані компоненти (`LoanFineCalculator`):** використовуються для винесення складної математичної логіки розрахунків, яку легко покрити чистими unit-тестами.
 
 </details>
 
@@ -136,6 +139,100 @@ class LoanFineCalculatorTest {
 2. Розрахувати суму штрафу за допомогою `LoanFineCalculator`.
 3. Змінити статус позики на `RETURNED`, записати суму штрафу і зберегти зміни в базу даних через `LoanRepository`.
 4. Якщо нараховано штраф (більше 0), надіслати сповіщення про це читачеві через зовнішній `NotificationService`.
+
+### Підготовчий етап: Доменна модель та DTO для позик
+Для реалізації логіки повернення книг нам знадобляться додаткові доменні класи, DTO та виключення, які були пропущені у попередніх практикумах. Створіть їх перед тим, як переходити до реалізації сервісу:
+
+<details markdown="1">
+<summary>1. Enum статусів позики (LoanStatus)</summary>
+
+**Файл: src/main/java/ua/edu/libraryservice/dto/LoanStatus.java**
+```java
+package ua.edu.libraryservice.dto;
+
+public enum LoanStatus {
+    ACTIVE,
+    RETURNED
+}
+```
+</details>
+
+<details markdown="1">
+<summary>2. DTO результату повернення (LoanReturnResult)</summary>
+
+**Файл: src/main/java/ua/edu/libraryservice/dto/LoanReturnResult.java**
+```java
+package ua.edu.libraryservice.dto;
+
+import java.math.BigDecimal;
+
+public record LoanReturnResult(Long loanId, BigDecimal fineAmount) {}
+```
+</details>
+
+<details markdown="1">
+<summary>3. Доменна модель позики (Loan)</summary>
+
+**Файл: src/main/java/ua/edu/libraryservice/model/Loan.java**
+```java
+package ua.edu.libraryservice.model;
+
+import ua.edu.libraryservice.dto.LoanStatus;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public class Loan {
+    private Long id;
+    private Long readerId;
+    private LocalDate dueDate;
+    private LoanStatus status;
+    private BigDecimal fineAmount;
+
+    public Loan(Long id, Long readerId, LocalDate dueDate, LoanStatus status) {
+        this.id = id;
+        this.readerId = readerId;
+        this.dueDate = dueDate;
+        this.status = status;
+        this.fineAmount = BigDecimal.ZERO;
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getReaderId() { return readerId; }
+    public void setReaderId(Long readerId) { this.readerId = readerId; }
+
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
+
+    public LoanStatus getStatus() { return status; }
+    public void setStatus(LoanStatus status) { this.status = status; }
+
+    public BigDecimal getFineAmount() { return fineAmount; }
+    public void setFineAmount(BigDecimal fineAmount) { this.fineAmount = fineAmount; }
+}
+```
+</details>
+
+<details markdown="1">
+<summary>4. Кастомне виключення (LoanNotFoundException)</summary>
+
+**Файл: src/main/java/ua/edu/libraryservice/exception/LoanNotFoundException.java**
+```java
+package ua.edu.libraryservice.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class LoanNotFoundException extends RuntimeException {
+    public LoanNotFoundException(Long id) {
+        super("Loan with id " + id + " not found");
+    }
+}
+```
+</details>
 
 <details markdown="1">
 <summary>Код LoanRepository</summary>
@@ -204,6 +301,14 @@ public class LoanService {
 Як протестувати логіку `LoanService` без підключення до реальної бази даних (через `LoanRepository`) та без відправки реальних сповіщень (через `NotificationService`)?
 Якщо ми спробуємо запустити тест із справжніми інфраструктурними компонентами, вони будуть занадто повільними, нестабільними та вимагатимуть складної конфігурації.
 Тут нам на допомогу приходить **Mockito** — фреймворк для створення заглушок (Mocks). Ми замінимо залежності нашого сервісу на керовані моки, поведінку яких ми зможемо програмувати в тестах за допомогою `given()` та перевіряти за допомогою `verify()`.
+
+> [!WARNING]
+> **Неправильний вибір інструментів мокування (Engineering Flaw):**
+> Використання повільної анотації `@MockBean` (Spring) для тестування звичайної бізнес-логіки є поширеною помилкою. Це змушує Spring Boot ініціалізувати контекст додатка для кожного тесту, що сильно уповільнює збірку проєкту в CI/CD.
+> 
+> **Розрізняйте `@Mock` та `@MockBean`:**
+> - **`@Mock` (Mockito):** Слід використовувати для тестування звичайної логіки без підняття фреймворку Spring. Тест виконується миттєво (за частки мілісекунди).
+> - **`@MockBean` (Spring Boot):** Використовується виключно при інтеграційному або slice-тестуванні (наприклад, з `@WebMvcTest`), коли мок повинен бути зареєстрований у контексті Spring (`ApplicationContext`) для його автоматичного впровадження (Dependency Injection) у контролери.
 
 Протестуйте `LoanService.returnBook()`. Використайте Mockito для ізоляції від інфраструктури.
 
@@ -304,7 +409,7 @@ class LoanServiceTest {
 ## Частина 2: Unit-тест `BookService` (20 хв)
 
 ### Бізнес-сценарій: Керування каталогом книг
-У нашому застосунку `BookService` відповідає за збереження та валідацію книг. Оскільки ми поки що зберігаємо книги in-memory (просто у списку `List<BookResponse>`), у нас немає потреби підіймати базу даних. Ми маємо перевірити такі правила:
+У нашому застосунку `BookService` відповідає за збереження та валідацію книг. Оскільки ми поки що зберігаємо книги in-memory (просто у списку `List<Book>`), у нас немає потреби підіймати базу даних. Ми маємо перевірити такі правила:
 1. При ініціалізації додаються початкові (seed) книги.
 2. Не можна додати книгу з порожньою назвою.
 3. Не можна перевищити максимальний ліміт кількості книг у бібліотеці (параметр, що зчитується з конфігурації у P05).
@@ -323,9 +428,10 @@ package ua.edu.libraryservice.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.dto.Book;
 import ua.edu.libraryservice.exception.BookNotFoundException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -343,13 +449,13 @@ class BookServiceTest {
 
     @Test
     void findAll_shouldReturnSeedBooks() {
-        List<BookResponse> books = bookService.findAll();
+        List<Book> books = bookService.findAll();
         assertThat(books).hasSize(2); // seed-дані з конструктора (P04/P05)
     }
 
     @Test
     void addBook_shouldReturnBookWithGeneratedId() {
-        BookResponse book = bookService.addBook("Clean Code", "Robert C. Martin");
+        Book book = bookService.addBook("Clean Code", "978-0132350884", LocalDate.of(2008, 8, 1));
         assertThat(book.id()).isNotNull();
         assertThat(book.title()).isEqualTo("Clean Code");
     }
@@ -357,24 +463,24 @@ class BookServiceTest {
     @Test
     void addBook_whenLimitReached_shouldThrowIllegalArgumentException() {
         // Ліміт = 3, seed = 2 → одна книга ще влізе
-        bookService.addBook("Extra Book", "Author");
+        bookService.addBook("Extra Book", "978-1234567890", LocalDate.now());
 
         // Четверта книга — має викликати помилку ліміту
-        assertThatThrownBy(() -> bookService.addBook("One Too Many", "Author"))
+        assertThatThrownBy(() -> bookService.addBook("One Too Many", "978-0987654321", LocalDate.now()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("заповнена");
     }
 
     @Test
     void addBook_whenTitleIsBlank_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookService.addBook("", "Author"))
+        assertThatThrownBy(() -> bookService.addBook("", "978-0132350884", LocalDate.now()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Title");
     }
 
     @Test
-    void findById_whenNotFound_shouldThrowBookNotFoundException() {
-        assertThatThrownBy(() -> bookService.findById(999L))
+    void findBookById_whenNotFound_shouldThrowBookNotFoundException() {
+        assertThatThrownBy(() -> bookService.findBookById(999L))
             .isInstanceOf(BookNotFoundException.class);
     }
 }
@@ -389,10 +495,11 @@ class BookServiceTest {
 ## Частина 3: Controller-тест (MockMvc) (20 хв)
 
 ### Бізнес-сценарій: Стабільність HTTP контракту
-У P08 мы спроектували API-контракт для нашого сервісу. Ми гарантували клієнтам:
-1. `GET /api/books` повертає список книг із статусом `200 OK`.
-2. `GET /api/books/{id}` повертає книгу, якщо вона існує. Якщо ні — повертає `404 Not Found` з структурованим об'єктом помилки `ApiError`.
-3. Запит із неправильним типом параметра (наприклад, літери замість ID книги) повертає `400 Bad Request`.
+У P08 ми спроектували API-контракт для нашого сервісу. Ми гарантували клієнтам:
+1. `GET /api/v1/books` повертає список книг із статусом `200 OK` (очікується обов'язковий заголовок `X-Auth-Token`).
+2. `GET /api/v1/books/{id}` повертає книгу, якщо вона існує. Якщо ні — повертає `404 Not Found` з структурованим об'єктом помилки `ApiError`.
+3. Запити без заголовка `X-Auth-Token` повертають `400 Bad Request`.
+4. Запити з неправильним токеном повертають `401 Unauthorized`.
 
 ### Інженерний виклик
 Як протестувати ці правила HTTP-взаємодії, не запускаючи при цьому реальний веб-сервер (Tomcat) і не виконуючи справжніх HTTP-запитів по мережі?
@@ -410,13 +517,14 @@ Spring Boot надає інструмент `@WebMvcTest` разом із `MockM
 package ua.edu.libraryservice.controller;
 
 import org.springframework.web.bind.annotation.*;
-import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.dto.Book;
+import ua.edu.libraryservice.exception.UnauthorizedException;
 import ua.edu.libraryservice.service.BookService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/books")
+@RequestMapping("/api/v1/books")
 public class BookController {
     private final BookService bookService;
 
@@ -425,13 +533,21 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookResponse> getAllBooks() {
+    public List<Book> getAllBooks(@RequestHeader("X-Auth-Token") String token) {
+        validateAuth(token);
         return bookService.findAll();
     }
 
     @GetMapping("/{id}")
-    public BookResponse getBook(@PathVariable Long id) {
-        return bookService.findById(id);
+    public Book getBook(@PathVariable Long id, @RequestHeader("X-Auth-Token") String token) {
+        validateAuth(token);
+        return bookService.findBookById(id);
+    }
+
+    private void validateAuth(String token) {
+        if (token == null || !token.equals("test-token")) {
+            throw new UnauthorizedException("Missing or invalid X-Auth-Token");
+        }
     }
 }
 ```
@@ -449,10 +565,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ua.edu.libraryservice.dto.BookResponse;
+import ua.edu.libraryservice.dto.Book;
 import ua.edu.libraryservice.exception.BookNotFoundException;
 import ua.edu.libraryservice.service.BookService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
@@ -473,10 +590,11 @@ class BookControllerTest {
     void getAllBooks_shouldReturnList() throws Exception {
         // Given
         given(bookService.findAll())
-            .willReturn(List.of(new BookResponse(1L, "Clean Code", "Robert C. Martin")));
+            .willReturn(List.of(new Book(1L, "Clean Code", "978-0132350884", LocalDate.of(2008, 8, 1))));
 
         // When & Then
-        mockMvc.perform(get("/api/books")
+        mockMvc.perform(get("/api/v1/books")
+                .header("X-Auth-Token", "test-token")
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(1))
@@ -484,22 +602,46 @@ class BookControllerTest {
     }
 
     @Test
+    void getBook_shouldReturnBook_whenExists() throws Exception {
+        // Given
+        Long bookId = 1L;
+        Book book = new Book(bookId, "Clean Code", "978-0132350884", LocalDate.of(2008, 8, 1));
+        given(bookService.findBookById(bookId)).willReturn(book);
+
+        // When & Then
+        mockMvc.perform(get("/api/v1/books/{id}", bookId)
+                .header("X-Auth-Token", "test-token"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(bookId))
+            .andExpect(jsonPath("$.title").value("Clean Code"));
+    }
+
+    @Test
     void getBook_shouldReturn404_whenNotFound() throws Exception {
         // Given
-        given(bookService.findById(999L))
+        given(bookService.findBookById(999L))
             .willThrow(new BookNotFoundException("Book with id 999 not found"));
 
         // When & Then
-        mockMvc.perform(get("/api/books/999"))
+        mockMvc.perform(get("/api/v1/books/999")
+                .header("X-Auth-Token", "test-token"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Book with id 999 not found"));
     }
 
     @Test
-    void getBook_shouldReturn400_whenIdIsNotANumber() throws Exception {
+    void getBook_shouldReturn400_whenHeaderIsMissing() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/books/abc"))
+        mockMvc.perform(get("/api/v1/books/1"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getBook_shouldReturn401_whenHeaderIsInvalid() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/v1/books/1")
+                .header("X-Auth-Token", "wrong-token"))
+            .andExpect(status().isUnauthorized());
     }
 }
 ```
