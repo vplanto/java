@@ -137,6 +137,23 @@ class LoanFineCalculatorTest {
 3. Змінити статус позики на `RETURNED`, записати суму штрафу і зберегти зміни в базу даних через `LoanRepository`.
 4. Якщо нараховано штраф (більше 0), надіслати сповіщення про це читачеві через зовнішній `NotificationService`.
 
+<details markdown="1">
+<summary>Код LoanRepository</summary>
+
+**Файл: src/main/java/ua/edu/libraryservice/repository/LoanRepository.java**
+```java
+package ua.edu.libraryservice.repository;
+
+import ua.edu.libraryservice.model.Loan;
+import java.util.Optional;
+
+public interface LoanRepository {
+    Optional<Loan> findById(Long id);
+    Loan save(Loan loan);
+}
+```
+</details>
+
 **Файл: src/main/java/ua/edu/libraryservice/service/LoanService.java**
 ```java
 package ua.edu.libraryservice.service;
