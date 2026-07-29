@@ -1,5 +1,8 @@
 # Практикум 4: Конфігурація та Обробка Помилок (Production Ready)
 
+> **Академічна доброчесність.** Правила цитування, використання ШІ та здачі робіт — у [Декларації](../../../DISCLAIMER.md).
+
+
 **Тип:** Hands-on Lab
 **Рівень:** Junior Strong
 **Попередні вимоги:** Проєкт `library-service` з P04 (`BookController`, `BookService`, `BookRequest`, `BookResponse`).

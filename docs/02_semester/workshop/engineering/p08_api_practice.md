@@ -1,5 +1,8 @@
 # Практикум P08: API Design на практиці. Пишемо OpenAPI-специфікацію руками
 
+> **Академічна доброчесність.** Правила цитування, використання ШІ та здачі робіт — у [Декларації](../../../DISCLAIMER.md).
+
+
 **Аудиторія:** 2-й курс (Junior Strong)
 **Тип:** Hands-on Lab
 **Попередні вимоги:** [Лекція 7: API Design](../../07_api_design.md), проєкт `library-service` з виконаними [P03](p03_spring_zero_to_hero.md) (базовий сервіс), [P04](p04_spring_architecture_di.md) (шарова архітектура + DI) та [P05](p05_spring_production_ready.md) (конфігурація + `GlobalExceptionHandler` з `ApiError`)

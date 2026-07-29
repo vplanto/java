@@ -15,3 +15,4 @@ exclude:
   - "*.sublime-workspace"
   - .idea
   - out
+  - 02_semester/exam_answers.md

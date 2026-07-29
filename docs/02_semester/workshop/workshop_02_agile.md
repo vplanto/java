@@ -1,5 +1,8 @@
 # 🏗️ Workshops: Scrum & Engineering Track
 
+> **Академічна доброчесність.** Правила цитування, використання ШІ та здачі робіт — у [Декларації](../../DISCLAIMER.md).
+
+
 **Аудиторія:** 2-й курс (Junior Strong)
 **Зв'язок з теорією:** [Лекція 2: Delivery Methodology](../02_delivery_methodology.md) | [Лекція 3: Requirements](../03_requirements.md)
 
