@@ -79,7 +79,7 @@ flowchart LR
 |----------|------|
 | Покриття програм | [n03_coverage_01.md](n03_coverage_01.md) |
 | Джерела | [sources.md](sources.md) |
-| Академічна доброчесність | [DISCLAIMER.md](DISCLAIMER.md) |
+| Декларація курсу (авторство + доброчесність) | [DISCLAIMER.md](DISCLAIMER.md) |
 | Пул екзаменаційних питань | [02_semester/exam.md](02_semester/exam.md) |
 | Методологія (цей документ) | [methodology.md](methodology.md) |
 | Глосарій | [02_semester/glossary.md](02_semester/glossary.md) |
