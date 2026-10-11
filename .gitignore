@@ -21,3 +21,10 @@ build/
 # --- OS Specific ---
 .DS_Store
 Thumbs.db
+
+# --- Temporary Files ---
+tmp/
+
+# --- Local Agent Rules / Config ---
+AGENTS.md
+.agents/
