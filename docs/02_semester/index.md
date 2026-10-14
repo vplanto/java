@@ -20,7 +20,10 @@ hub: true
 
 Матеріали в рекомендованому порядку проходження.
 
+<div class="hub-block" markdown="1">
+
 ### Блок 1: Процеси та Вимоги
+
 *Як зрозуміти, що будувати, до того, як відкрити IDE.*
 
 | # | Лекція | Ключові теми |
@@ -32,7 +35,12 @@ hub: true
 | 2a | **[Delivery Metrics](02a_metrics.md)** | Метрики доставки (Velocity, Lead/Cycle Time, Burndown, Quality Gates) |
 | 3 | **[Definition of Requirements](03_requirements.md)** | Функціональні вимоги. User Stories. Acceptance Criteria |
 
+</div>
+
+<div class="hub-block" markdown="1">
+
 ### Блок 2: Якість та Архітектурні Характеристики
+
 *Найважливіша частина для архітектора.*
 
 | # | Лекція | Ключові теми |
@@ -41,7 +49,12 @@ hub: true
 | 5 | **[NFR Discovery](05_nfr_late_discovery.md)** | Ціна пізнього виявлення NFR. ADR. NFR-аудит коду |
 | 6 | **[QA Strategy](06_qa_strategy.md)** | Піраміда тестування. SonarQube. Quality Gates у пайплайні |
 
+</div>
+
+<div class="hub-block" markdown="1">
+
 ### Блок 3: Технічна Реалізація
+
 *Як це будується руками.*
 
 | # | Лекція | Ключові теми |
@@ -53,7 +66,12 @@ hub: true
 | 9 | **[Docker & Containerization](09_docker.md)** | Dockerfile, Multi-stage build, cgroups, Docker Compose |
 | P | **[P06: Docker на практиці](workshop/engineering/p06_docker_practice.md)** | Практика з Docker: Dockerfile, Compose, PostgreSQL, Debugging |
 
+</div>
+
+<div class="hub-block" markdown="1">
+
 ### Блок 4: Розподілені Системи та System Design
+
 *Архітектура великих систем.*
 
 | # | Лекція | Ключові теми |
@@ -63,11 +81,15 @@ hub: true
 | 12 | **[Refactoring](12_refactoring.md)** | Code Smells, Technical Debt, TDD-цикл, Legacy Code, Extract Method |
 | — | **[Case Study: CAP Theorem](case_study_cap.md)** | Практичні приклади CP vs AP. FinOps-вимір консистентності |
 
+</div>
+
 ---
 
 ## Hands-on Track — Практикуми
 
 Паралельний трек, де теорія перетворюється на код та процеси.
+
+<div class="hub-block" markdown="1">
 
 ### 🎯 Фінальний проєкт
 
@@ -76,11 +98,19 @@ hub: true
 | **[P01: Фінальний проєкт — Від Ідеї до Хмари](workshop/engineering/p01_final_project_guide.md)** | Покрокова карта виконання: ідея → вимоги → API → README → тести → код → Docker → Cloud |
 | **[Agentic Pipeline vs Vibe Coding](workshop/engineering/vibe_coding.md)** | Філософія курсу та критерії оцінювання фінального проєкту |
 
+</div>
+
+<div class="hub-block" markdown="1">
+
 ### 👥 Scrum та Agile
 
 | Файл | Лекція | Зміст |
 |---|---|---|
 | **[Workshop: Scrum Ceremonies (Case Study)](workshop/workshop_02_agile.md)** | Л2 | Planning, Daily, Review, Retrospective на реальному проєкті |
+
+</div>
+
+<div class="hub-block" markdown="1">
 
 ### 📐 System Design
 
@@ -88,7 +118,12 @@ hub: true
 |---|---|
 | **[Workshop: System Design (URL Shortener)](workshop/workshop_03_system_design.md)** | Live Design Session: Requirements, Base62, Data Design, FinOps |
 
+</div>
+
+<div class="hub-block" markdown="1">
+
 ### 💻 Spring Boot Ecosystem (Engineering Track)
+
 *Покрокова розробка, контейнеризація, деплой та тестування Production-Ready сервісу.*
 
 > **[Перейти до повного треку: Engineering Workshop Track ➡️](workshop/engineering/index.md)**
@@ -104,9 +139,13 @@ hub: true
 | **[P08: API Design на практиці](workshop/engineering/p08_api_practice.md)** | Л7 | URL-структура, HTTP-статуси, OpenAPI YAML, Breaking Changes |
 | **[P09: Testing на практиці](workshop/engineering/p09_testing_practice.md)** | Л8 | Unit (Mockito), @DataJpaTest, MockMvc, Coverage |
 
+</div>
+
 ---
 
 ## Definition of Done
+
+<div class="hub-block" markdown="1">
 
 Після проходження семестру студент повинен вміти:
 
@@ -117,6 +156,8 @@ hub: true
 5. Розгорнути сервіс у хмарі (HTTPS) з CI/CD.
 6. Спроєктувати систему з урахуванням NFRs і CAP-теореми.
 
+</div>
+
 ---
 
 ## [🚀 Шлях Інженера: Підсумки курсу](engineering_mindset.md)
@@ -125,6 +166,8 @@ hub: true
 ---
 
 ## Технічні вимоги
+
+<div class="hub-block" markdown="1">
 
 | Інструмент | Вимога |
 |---|---|
@@ -135,9 +178,13 @@ hub: true
 | Cloud | Render.com (Free Tier) |
 | VCS | GitHub |
 
+</div>
+
 ---
 
 ## Навчально-методичний комплект
+
+<div class="hub-block" markdown="1">
 
 | Артефакт | Опис |
 |----------|------|
@@ -147,20 +194,30 @@ hub: true
 | [Пул екзаменаційних питань](exam.md) | Повний список тем для підготовки |
 | [Методологія курсу](../methodology.md) | Траєкторія, оцінювання, фінальний проєкт ≠ іспит |
 
+</div>
+
 ---
 
 ## Екзамен
+
+<div class="hub-block" markdown="1">
 
 - **[Пул екзаменаційних питань](exam.md)** — повний список тем та запитань для підготовки (семестри 1 і 2).
 - **Теорія:** NFRs, SDLC, CAP-теорема, Docker, System Design.
 - **Практика:** Code Review Spring Boot сервісу + захист архітектурного рішення (System Design Interview).
 
+</div>
+
 ---
 
 ## Додатково
 
+<div class="hub-block" markdown="1">
+
 - **[Глосарій термінів](glossary.md)** — всі незнайомі слова з лекцій: Jira, CI/CD, Sprint, Backlog, Docker і ще 40+.
 - **[todo_2026.md](todo_2026.md)** — майбутні теми та плани розвитку курсу.
+
+</div>
 
 ---
 
