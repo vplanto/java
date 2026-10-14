@@ -7,6 +7,18 @@ highlighter: rouge
 title: "ONU Java Course"
 description: "Educational materials for Java Programming at ONU"
 
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "default"
+
 # Exclude some things
 exclude:
   - Gemfile

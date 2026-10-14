@@ -1,3 +1,8 @@
+---
+layout: default
+hub: true
+---
+
 # Java Engineering. Семестр 2: Від Вимог до Розподілених Систем
 
 > **English version:** [English](en/index.md)
