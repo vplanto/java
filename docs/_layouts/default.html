@@ -176,6 +176,127 @@
     .page-hub .hub-block blockquote {
       margin: 0.75rem 0 0;
     }
+
+    /* Syntax Highlighting for Rouge (GitHub Pages) */
+    .highlight { background: #ffffff; }
+    .highlight .c { color: #999988; font-style: italic }
+    .highlight .err { color: #a61717; background-color: #e3d2d2 }
+    .highlight .k { font-weight: bold }
+    .highlight .o { font-weight: bold }
+    .highlight .cm { color: #999988; font-style: italic }
+    .highlight .cp { color: #999999; font-weight: bold }
+    .highlight .c1 { color: #999988; font-style: italic }
+    .highlight .cs { color: #999999; font-weight: bold; font-style: italic }
+    .highlight .gd { color: #000000; background-color: #ffdddd }
+    .highlight .gd .x { color: #000000; background-color: #ffaaaa }
+    .highlight .ge { font-style: italic }
+    .highlight .gr { color: #aa0000 }
+    .highlight .gh { color: #999999 }
+    .highlight .gi { color: #000000; background-color: #ddffdd }
+    .highlight .gi .x { color: #000000; background-color: #aaffaa }
+    .highlight .go { color: #888888 }
+    .highlight .gp { color: #555555 }
+    .highlight .gs { font-weight: bold }
+    .highlight .gu { color: #aaaaaa }
+    .highlight .gt { color: #aa0000 }
+    .highlight .kc { font-weight: bold }
+    .highlight .kd { font-weight: bold }
+    .highlight .kp { font-weight: bold }
+    .highlight .kr { font-weight: bold }
+    .highlight .kt { color: #445588; font-weight: bold }
+    .highlight .m { color: #009999 }
+    .highlight .s { color: #d14 }
+    .highlight .na { color: #008080 }
+    .highlight .nb { color: #0086B3 }
+    .highlight .nc { color: #445588; font-weight: bold }
+    .highlight .no { color: #008080 }
+    .highlight .ni { color: #800080 }
+    .highlight .ne { color: #990000; font-weight: bold }
+    .highlight .nf { color: #990000; font-weight: bold }
+    .highlight .nn { color: #555555 }
+    .highlight .nt { color: #000080 }
+    .highlight .nv { color: #008080 }
+    .highlight .ow { font-weight: bold }
+    .highlight .w { color: #bbbbbb }
+    .highlight .mf { color: #009999 }
+    .highlight .mh { color: #009999 }
+    .highlight .mi { color: #009999 }
+    .highlight .mo { color: #009999 }
+    .highlight .sb { color: #d14 }
+    .highlight .sc { color: #d14 }
+    .highlight .sd { color: #d14 }
+    .highlight .s2 { color: #d14 }
+    .highlight .se { color: #d14 }
+    .highlight .sh { color: #d14 }
+    .highlight .si { color: #d14 }
+    .highlight .sx { color: #d14 }
+    .highlight .sr { color: #009926 }
+    .highlight .s1 { color: #d14 }
+    .highlight .ss { color: #990073 }
+    .highlight .bp { color: #999999 }
+    .highlight .vc { color: #008080 }
+    .highlight .vg { color: #008080 }
+    .highlight .vi { color: #008080 }
+    .highlight .il { color: #009999 }
+
+    /* GitHub Alerts */
+    .markdown-body blockquote.markdown-alert {
+      padding: 0.5rem 1rem;
+      margin-bottom: 1rem;
+      color: inherit;
+      border-left: 0.25em solid #d0d7de;
+      background-color: transparent;
+    }
+    .markdown-body blockquote.markdown-alert > :first-child {
+      margin-top: 0;
+    }
+    .markdown-body blockquote.markdown-alert > :last-child {
+      margin-bottom: 0;
+    }
+    .markdown-body blockquote.markdown-alert .markdown-alert-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-top: 0;
+      margin-bottom: 0.4rem;
+    }
+    .markdown-body blockquote.markdown-alert .markdown-alert-title svg {
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-note {
+      border-left-color: #0969da;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-note .markdown-alert-title {
+      color: #0969da;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-tip {
+      border-left-color: #1a7f37;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-tip .markdown-alert-title {
+      color: #1a7f37;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-important {
+      border-left-color: #8250df;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-important .markdown-alert-title {
+      color: #8250df;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-warning {
+      border-left-color: #9a6700;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-warning .markdown-alert-title {
+      color: #9a6700;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-caution {
+      border-left-color: #cf222e;
+    }
+    .markdown-body blockquote.markdown-alert.markdown-alert-caution .markdown-alert-title {
+      color: #cf222e;
+    }
   </style>
 
   <script>
@@ -226,5 +347,58 @@
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>document.addEventListener('DOMContentLoaded', (event) => { hljs.highlightAll(); });</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const isUk = !document.documentElement.lang || document.documentElement.lang.startsWith('uk');
+      const alerts = {
+        note: {
+          title: isUk ? 'Примітка' : 'Note',
+          svg: '<svg class="octicon octicon-info" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>'
+        },
+        tip: {
+          title: isUk ? 'Порада' : 'Tip',
+          svg: '<svg class="octicon octicon-light-bulb" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .761.223 1.498.667 2.103.428.583.933 1.137.933 1.897v.5h4.8v-.5c0-.76.505-1.314.933-1.897.444-.605.667-1.342.667-2.103 0-2.06-1.637-3.75-4-3.75ZM6.4 10.75h3.2v.5a.75.75 0 0 1-.75.75h-1.7a.75.75 0 0 1-.75-.75v-.5Zm-2.9-5.5C3.5 3.037 5.485 0 8 0s4.5 3.037 4.5 5.25c0 .99-.312 1.954-.888 2.74-.29.395-.612.784-.612 1.26v1.5a2.25 2.25 0 0 1-2.25 2.25h-1.5A2.25 2.25 0 0 1 5 10.75v-1.5c0-.476-.322-.865-.612-1.26A4.542 4.542 0 0 1 3.5 5.25Z"></path></svg>'
+        },
+        important: {
+          title: isUk ? 'Важливо' : 'Important',
+          svg: '<svg class="octicon octicon-report" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2.5a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>'
+        },
+        warning: {
+          title: isUk ? 'Увага' : 'Warning',
+          svg: '<svg class="octicon octicon-alert" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>'
+        },
+        caution: {
+          title: isUk ? 'Обережно' : 'Caution',
+          svg: '<svg class="octicon octicon-stop" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6c0 .199-.079.389-.22.53l-4.25 4.25a.749.749 0 0 1-.53.22H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>'
+        }
+      };
+
+      const alertRegex = /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\](?:\s*<br\s*\/?>)?\s*/i;
+
+      document.querySelectorAll('.markdown-body blockquote').forEach((bq) => {
+        const firstEl = bq.firstElementChild;
+        if (!firstEl || firstEl.tagName !== 'P') return;
+
+        const match = firstEl.innerHTML.match(alertRegex);
+        if (!match) return;
+
+        const type = match[1].toLowerCase();
+        const conf = alerts[type];
+        if (!conf) return;
+
+        firstEl.innerHTML = firstEl.innerHTML.slice(match[0].length);
+        if (firstEl.innerHTML.trim() === '') {
+          firstEl.remove();
+        }
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'markdown-alert-title';
+        titleDiv.innerHTML = `${conf.svg}<span>${conf.title}</span>`;
+
+        bq.insertBefore(titleDiv, bq.firstChild);
+        bq.classList.add('markdown-alert', `markdown-alert-${type}`);
+      });
+    });
+  </script>
 </body>
 </html>
