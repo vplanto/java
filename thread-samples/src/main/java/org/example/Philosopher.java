@@ -12,6 +12,7 @@ class Philosopher extends Thread {
     private String name;
 
     Philosopher(Semaphore sem, String name) {
+        super(name);
         this.sem=sem;
         this.name=name;
     }
