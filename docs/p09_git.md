@@ -48,6 +48,24 @@ Git оперує двома копіями цього журналу:
 
 Весь процес командної роботи з Git — це синхронізація локального репозиторію з віддаленим.
 
+```mermaid
+flowchart LR
+    subgraph Dev1["Комп'ютер розробника 1"]
+        WD1["Робоча тека (файли коду)"] -->|"git add"| ST1["Staging Area (індекс)"]
+        ST1 -->|"git commit"| L1["Локальний репозиторій (.git)"]
+    end
+
+    R["Віддалений репозиторій (GitHub / origin)"]
+
+    subgraph Dev2["Комп'ютер розробника 2"]
+        L2["Локальний репозиторій (.git)"]
+    end
+
+    L1 -->|"git push"| R
+    R -->|"git clone / git pull"| L1
+    R <-->|"git pull / git push"| L2
+```
+
 -----
 
 ## Крок 1: Початок роботи (Клонування)
@@ -118,6 +136,23 @@ git clone https://github.com/volunteer-org/website.git
 
 **Що сталося?** На сервері вже є коміт вашого колеги, якого немає у вашій локальній історії. Git блокує прямий запис, щоб не перезаписати чужі зміни і не втратити розділ "Звіти".
 
+```mermaid
+sequenceDiagram
+    participant D1 as Розробник 1 (ви)
+    participant R as Remote (GitHub)
+    participant D2 as Розробник 2 (колега)
+
+    R-->>D1: git pull (спільний стан C0)
+    R-->>D2: git pull (спільний стан C0)
+    D2->>D2: змінює index.html -> commit C1
+    D2->>R: git push (успішно, на сервері C1)
+    D1->>D1: змінює той самий рядок -> commit C2
+    D1->>R: git push
+    R--xD1: rejected (на сервері вже є C1)
+    D1->>R: git pull (спроба об'єднати C1 і C2)
+    R-->>D1: CONFLICT у index.html
+```
+
 -----
 
 ## Крок 4: Як оновити локальну версію (Рішення)
@@ -141,6 +176,20 @@ git clone https://github.com/volunteer-org/website.git
     3.  Дістає ваш коміт з кишені і "накладає" його **зверху** змін колеги.
 
 Ваша історія комітів виглядає чистою і лінійною, ніби ви робили свою роботу *після* колеги.
+
+```mermaid
+flowchart LR
+    subgraph Merge["git pull (merge)"]
+        M0["C0 (спільний)"] --> M1["C1 (колега)"]
+        M0 --> M2["C2 (ви)"]
+        M1 --> M3["Merge commit"]
+        M2 --> M3
+    end
+
+    subgraph Rebase["git pull --rebase"]
+        R0["C0 (спільний)"] --> R1["C1 (колега)"] --> R2["C2' (ви, поверх C1)"]
+    end
+```
 
 ### Що робити при конфлікті?
 
@@ -180,6 +229,15 @@ git clone https://github.com/volunteer-org/website.git
   * **Pull Request:** Після цього ви створюєте на GitHub **Pull Request** (Запит на злиття). Це прохання: "Команда, я закінчив. Подивіться мій код у гілці `feature/add-contacts`. Якщо все добре, додайте його до `main`".
 
 Це **найбезпечніший** спосіб командної роботи. Він захищає `main` від випадкових помилок.
+
+```mermaid
+flowchart LR
+    A["main: C0"] --> B["main: C1"]
+    B -.->|"git checkout -b feature/add-contacts"| F1["feature: коміт 1"]
+    F1 --> F2["feature: коміт 2"]
+    F2 -->|"Pull Request + Review"| M2["main: C2 (після merge)"]
+    B --> M2
+```
 
 -----
 
