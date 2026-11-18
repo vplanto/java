@@ -31,6 +31,7 @@ hub: true
 | 0 | **[Intro. Engineering Mindset](00_intro.md)** | Від кодера до інженера. Код як пасив, архітектура як актив |
 | 1 | **[SDLC](01_sdlc.md)** | Етапи життя ПЗ. Роль Jira, Git, CI/CD |
 | 1a | **[Project Roles](01a_project_roles.md)** | Розширений перелік Enterprise ролей |
+| 1b | **[AI SDLC](01b_ai_sdlc.md)** | Вузьке місце зміщується з коду на верифікацію. Context Engineering. Торвальдс: «Show me the code» |
 | 2 | **[Delivery Methodology](02_delivery_methodology.md)** | Agile, Scrum, Kanban vs Waterfall |
 | 2a | **[Delivery Metrics](02a_metrics.md)** | Метрики доставки (Velocity, Lead/Cycle Time, Burndown, Quality Gates) |
 | 3 | **[Definition of Requirements](03_requirements.md)** | Функціональні вимоги. User Stories. Acceptance Criteria |
