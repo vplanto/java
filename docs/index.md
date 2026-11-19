@@ -82,6 +82,7 @@ hub: true
 | **7** | [Чому "Банка" Monobank не губить ваші донати?](p07_race_condition.md) | Відтворення race condition ("втрачені донати"), синхронізація через `synchronized`, координація потоків через `join()` |
 | **8** | [Не створюйте потоки вручну! Сила ExecutorService](p08_executors.md) | Обмеження `new Thread()`, пули потоків `ExecutorService`, повернення результатів через `Callable` та `Future` |
 | **9** | [Git. Як не "спалити" проєкт і врятувати свою роботу](p09_git.md) | Командна робота з віддаленим репозиторієм, розбіжність історії (`! [rejected]`), оновлення гілок і розв'язання конфліктів |
+| **10** | [JDBC на практиці та вбудована БД H2](p10_jdbc.md) | Режими H2 (`mem:` з `DB_CLOSE_DELAY=-1` vs `file:`), `try-with-resources`, SQL-ін'єкція (`Statement` vs `PreparedStatement`), JUnit 5 тести (`jdbc-samples/`) |
 
 </div>
 

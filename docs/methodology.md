@@ -21,7 +21,7 @@
 | Компонент | Обсяг | Зміст |
 |-----------|-------|-------|
 | Лекції | 11 (`00`–`10`) | JVM, колекції, винятки, SOLID, потоки, troubleshooting, логування, JDBC, патерни |
-| Practica | 10 (`p00`–`p09`) | Git, Maven, ООП, generics, колекції, SOLID, DI, concurrency, executors |
+| Practica | 11 (`p00`-`p10`) | Git, Maven, ООП, generics, колекції, SOLID, DI, concurrency, executors, командний Git, JDBC + H2 |
 | Ритм | 1 лекція/тиждень; practica раз на 2 тижні | |
 | Фінальна робота | [n01_final_project.md](n01_final_project.md) | Консольна гра (проєктування + ООП) |
 
