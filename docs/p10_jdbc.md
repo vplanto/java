@@ -92,6 +92,41 @@ jdbc-samples/
 
 -----
 
+## Інструмент безпеки ресурсів: `try-with-resources`
+
+У [Лекції 4](04_java_exceptions.md) ми згадували `try-with-resources` лише за назвою, але в JDBC ця конструкція використовується на кожному кроці, бо відкриті `Connection`, `Statement` і `ResultSet` не можна залишати незакритими.
+
+### Структура
+
+```java
+try (ResourceType1 r1 = openFirst();
+     ResourceType2 r2 = openSecond(r1)) {
+    // робота з r1 і r2 (змінні доступні лише в межах цього блоку)
+} catch (SomeException e) {
+    // обробка помилки (ресурси на цей момент уже закриті)
+}
+```
+
+### Як це працює під капотом
+
+1. **Вимога `AutoCloseable`:** у круглих дужках `try (...)` можна оголошувати лише об'єкти класів, що реалізують інтерфейс `java.lang.AutoCloseable` (мають метод `close()`). Змінні `r1`, `r2` є неявно `final`.
+2. **Гарантоване закриття у зворотному порядку (LIFO):** ресурси створюються згори донизу (`r1`, потім `r2`). При виході з тіла `try` (успішному або через виняток) JVM автоматично закриває їх **у зворотному порядку** (`r2.close()`, потім `r1.close()`) **до** переходу в `catch`. Якщо створення `r2` завершиться помилкою, уже відкритий `r1` усе одно буде закрито.
+3. **Збереження основної помилки (`Suppressed Exceptions`):** у ручному `try-finally` виняток із `close()` затирає оригінальний виняток із блоку `try`. У `try-with-resources` головним залишається виняток із тіла `try`, а помилки з `close()` додаються до нього як приглушені (`Throwable.addSuppressed`, доступні через `e.getSuppressed()`).
+
+### Короткий приклад
+
+```java
+try (BufferedReader reader = Files.newBufferedReader(Path.of("donations.csv"))) {
+    System.out.println(reader.readLine());
+} catch (IOException e) {
+    System.err.println("Помилка читання файлу: " + e.getMessage());
+}
+```
+
+Тут `BufferedReader` реалізує `AutoCloseable`, тому `reader.close()` викличеться автоматично після завершення `try` - писати блок `finally` із перевіркою `if (reader != null)` не потрібно. Якщо в `try (...)` передано кілька ресурсів через `;`, кожен із них закриється аналогічно.
+
+-----
+
 ## Як працює `JdbcDonationRepository` крок за кроком
 
 ### 1. Підключення та створення схеми
