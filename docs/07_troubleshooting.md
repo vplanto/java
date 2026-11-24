@@ -322,6 +322,8 @@ Full thread dump OpenJDK 64-Bit Server VM (13.0.2+8 mixed mode, sharing):
   * **Інтерпретація:** Потік `#23` (`blocked-thread`) у стані `BLOCKED`, бо він `waiting to lock <...5508>`. Потік `#21` (`blocking-thread`) у стані `TIMED_WAITING`, але він утримує той самий монітор: `locked <...5508>`.
   * **Висновок (⚠️ не плутайте з Deadlock!):** Потік `#21` викликав `Thread.sleep()` *усередині* секції `synchronized` (той самий антипатерн, про який ми попереджали у [Лекції 6](06_threads.md)!) і тримає замок, поки спить. Це **"вузьке місце" (lock contention)**, але ще **не** дедлок: щойно потік `#21` прокинеться і вийде з блоку, потік `#23` продовжить роботу. Справжнє взаємне блокування — у наступному прикладі.
 
+> **Примітка про `ReentrantLock`:** стан `BLOCKED (on object monitor)` у дампі з'являється лише для `synchronized`. Якщо потік очікує на `ReentrantLock` або інший замок із `java.util.concurrent.locks` ([Лекція 6](06_threads.md)), у дампі буде стан `WAITING (parking)` або `TIMED_WAITING (parking)` із рядком `parking to wait for <...>`. Щоб побачити, який саме потік утримує такий замок (`Locked ownable synchronizers`), використовуйте `jstack -l <pid>`.
+
 **2. Приклад: `DEADLOCK`** 
 
 ```
