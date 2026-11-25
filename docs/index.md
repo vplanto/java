@@ -80,6 +80,7 @@ hub: true
 | **5** | [Від спагеті до SOLID - рефакторинг реального коду](p05_solid.md) | Аудит архітектурних проблем у `ResturantExample.java` та покроковий рефакторинг до модульної структури |
 | **6** | [Модульний дизайн, або Як не писати "крихкий" код (DIP, IoC, DI)](p06_module_design.md) | Еволюція від хардкоду до модульного бота із застосуванням DIP, IoC та Dependency Injection |
 | **7** | [Чому "Банка" Monobank не губить ваші донати?](p07_race_condition.md) | Відтворення race condition ("втрачені донати"), синхронізація через `synchronized`, координація потоків через `join()` |
+| **7a** | [Еволюція потокобезпечної черги (від `synchronized` до `BlockingQueue`)](p07a_blocking_queue_evolution.md) | Покроковий live-coding Producer-Consumer: `wait`/`notifyAll`, `ReentrantLock` + `Condition`, таймаути, `ArrayBlockingQueue` та стрес-стенд на `CyclicBarrier` |
 | **8** | [Не створюйте потоки вручну! Сила ExecutorService](p08_executors.md) | Обмеження `new Thread()`, пули потоків `ExecutorService`, повернення результатів через `Callable` та `Future` |
 | **9** | [Git. Як не "спалити" проєкт і врятувати свою роботу](p09_git.md) | Командна робота з віддаленим репозиторієм, розбіжність історії (`! [rejected]`), оновлення гілок і розв'язання конфліктів |
 | **10** | [JDBC на практиці та вбудована БД H2](p10_jdbc.md) | Режими H2 (`mem:` з `DB_CLOSE_DELAY=-1` vs `file:`), `try-with-resources`, SQL-ін'єкція (`Statement` vs `PreparedStatement`), JUnit 5 тести (`jdbc-samples/`) |
