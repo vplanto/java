@@ -118,6 +118,7 @@ hub: true
 | Файл | Зміст |
 |---|---|
 | **[Workshop: System Design (URL Shortener)](workshop/workshop_03_system_design.md)** | Live Design Session: Requirements, Base62, Data Design, FinOps |
+| **[Workshop: Еволюція архітектури (SMS-сховище)](workshop/workshop_04_architecture_evolution.md)** | 3-етапний кейс: NFR на інтеграцію філій, розширення під Top-10 звіти та алерти |
 
 </div>
 
